@@ -9,9 +9,11 @@ import LoopPlayer from '../components/LoopPlayer';
 import UpgradeWall from '../components/UpgradeWall';
 import Account from '../components/Account';
 import DiceConfig from '../components/DiceConfig';
+import DiceFocus from '../components/DiceFocus';
 import SongBuilder from '../components/SongBuilder';
 import { STYLES, GENRES, SKILLS, rollProgression, rollScale, practiceTip } from '../lib/style';
 import { lessonsFor, isStretch, enrichLesson, mergeLessonLists } from '../lib/lessons';
+import { lessonLockedReason } from '../lib/entitlements';
 import { NECK_SYSTEM_LESSONS } from '../lib/neckSystems';
 import { rollBridge, defaultSlots, sanitiseSlots } from '../lib/bridge';
 import { strumChord, playProgressionChords } from '../lib/audio';
@@ -51,6 +53,8 @@ export default function Home() {
   const [audioWarn, setAudioWarn] = useState(false);
   const [diceN, setDiceN] = useState(2);
   const [slots, setSlots] = useState(defaultSlots(2));
+  const [rollKey, setRollKey] = useState('');
+  const [rollMode, setRollMode] = useState('');
 
   function refresh() {
     return Promise.all([api('preferences'), api('usage/status'), api('streak/status'), api('auth/user')])
@@ -147,9 +151,10 @@ export default function Home() {
         const chordSlots = useSlots.filter(function (s) { return s === 'chord'; }).length;
         const rolled = rollProgression({
           style:style, genre:genre, skill:skill, chords:data.chords,
-          count: Math.max(2, chordSlots), avoid: recent
+          count: Math.max(2, chordSlots), avoid: recent,
+          lockRoot: rollKey, lockMode: rollMode
         });
-        if (style === 'lead') setScale(rollScale({ genre:genre, skill:skill, modes:data.modes }));
+        if (style === 'lead') setScale(rollScale({ genre:genre, skill:skill, modes:data.modes, lockRoot: rollKey, lockMode: rollMode }));
         else setScale(null);
         const out = [];
         let ci = 0;
@@ -298,7 +303,7 @@ export default function Home() {
     );
   }
 
-  const lessons = lessonsFor(allLessons, style, genre, skill).map(enrichLesson);
+  const lessons = lessonsFor(allLessons, style, genre, skill).map(enrichLesson).map(function (l) { return Object.assign({}, l, { gate: lessonLockedReason(l, tier) }); });
   const lesson = openLesson ? lessons.filter(function (l) { return l.id === openLesson; })[0] : null;
   const sel = selected >= 0 && items[selected] ? items[selected] : null;
   const isBridgeSel = sel && sel.kind === 'bridge' && sel.link;
@@ -342,6 +347,8 @@ export default function Home() {
             <span className="die">[ ]</span>
             {rolling ? 'Rolling...' : (items.length ? 'Roll Again' : 'Roll the Dice')}
           </button>
+          <DiceFocus usage={usage} rollKey={rollKey} rollMode={rollMode}
+            onKey={setRollKey} onMode={setRollMode} onUpgrade={function () { setTab('plans'); }} />
           {msg ? <div className="notice"><span>{msg}</span></div> : null}
           {diceMax > 2 ? (
             <DiceConfig max={diceMax} count={diceN} slots={slots} allowBridge={canBridge}
@@ -382,9 +389,7 @@ export default function Home() {
               </p>
             </div>
           ) : null}
-
           {sel && sel.why ? <div className="tip bridgeTip"><strong>{sel.label}:</strong> {sel.why}</div> : null}
-
           {sel && selScale ? (
             <div className="card">
               <div className="rowBetween">
@@ -439,7 +444,6 @@ export default function Home() {
               <button className="btn ghost wide" onClick={function () { setSelected(-1); }}>Close</button>
             </div>
           ) : null}
-
           {items.length && canLoop ? <LoopPlayer chords={items.map(function (i) { return i.chord; })} /> : null}
           {items.length && !canLoop ? (
             <div className="card">
@@ -448,7 +452,6 @@ export default function Home() {
               <button className="btn primary wide" onClick={function () { setTab('plans'); }}>See plans</button>
             </div>
           ) : null}
-
           {!sel && scale ? (
             <div className="card">
               <div className="rowBetween">
@@ -461,7 +464,6 @@ export default function Home() {
               <div className="howto"><b>Tip:</b> tap any chord above to see the scale for that one chord on its own - much easier to read while you play over it.</div>
             </div>
           ) : null}
-
           {tip ? <div className="tip"><strong>Practice this:</strong> {tip}</div> : null}
           {!items.length ? <div className="empty"><p className="muted">Tap the dice for a {styleMeta.label.toLowerCase()} idea in {genreLabel}.</p></div> : null}
         </div>
@@ -528,22 +530,22 @@ export default function Home() {
               <div className="card">
                 <h3>Classroom</h3>
                 <p className="muted sm">
-                  {lessons.length} lessons for {styleMeta.label.toLowerCase()}, sorted for {genreLabel} at {skill} level. Neck-system lessons sit first for lead. Each one is a full 10-12 minute practice block.
+                  {lessons.length} lessons for {styleMeta.label.toLowerCase()}, sorted for {genreLabel} at {skill} level. Free opens entry lessons. Premium adds intermediate. Extreme adds advanced, master, and neck systems.
                 </p>
               </div>
               {!allLessons.length ? <div className="card"><p className="muted">Loading lessons...</p></div> : null}
               {lessons.map(function (l) {
                 const stretch = isStretch(l, skill);
                 return (
-                  <button key={l.id} className="lessonItem" onClick={function () { setOpenLesson(l.id); }}>
+                  <button key={l.id} className="lessonItem" onClick={function () { if (l.gate) { setTab('plans'); return; } setOpenLesson(l.id); }}>
                     <div className="lessonTop">
                       <strong>{l.title}</strong>
-                      <span className={'levelTag ' + (stretch ? 'locked' : l.level)}>{stretch ? 'stretch' : l.level}</span>
+                      <span className={'levelTag ' + ((l.gate || stretch) ? 'locked' : l.level)}>{l.gate ? 'upgrade' : (stretch ? 'stretch' : l.level)}</span>
                     </div>
                     <p className="lessonSummary">{l.summary}</p>
                     <p className="lessonKey">
                       {l.genre && l.genre !== 'any' ? <span className="genreTag">{l.genre}</span> : null}
-                      {l.key} - {l.bpm} BPM - {l.notes.length} notes - {l.steps.length} steps
+                      {l.key} - {l.bpm} BPM - {l.notes.length} notes
                     </p>
                   </button>
                 );

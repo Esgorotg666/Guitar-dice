@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://guitar-dice.vercel.app/schema/lessons-v2.schema.json",
+  "title": "Guitar Dice classroom lessons",
+  "type": "object",
+  "required": ["lessons"],
+  "additionalProperties": false,
+  "properties": {
+    "legend": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "legendOrder": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "lessons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "level", "style", "notes", "steps"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "level": { "enum": ["entry", "intermediate", "advanced", "master"] },
+          "style": { "enum": ["lead", "rhythm", "acoustic"] },
+          "genre": { "type": "string" },
+          "key": { "type": "string" },
+          "bpm": { "type": "number", "minimum": 40, "maximum": 220 },
+          "summary": { "type": "string" },
+          "watchFor": { "type": "string" },
+          "goals": { "type": "array", "items": { "type": "string" } },
+          "practicePlan": { "type": "array", "items": { "type": "string" } },
+          "chords": { "type": "array", "items": { "type": "string" } },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "notes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["string", "fret"],
+              "additionalProperties": false,
+              "properties": {
+                "string": { "type": "integer", "minimum": 0, "maximum": 5 },
+                "fret": { "type": "integer", "minimum": 0, "maximum": 15 },
+                "beats": { "type": "number", "exclusiveMinimum": 0 },
+                "pick": { "enum": ["D", "U"] },
+                "tech": {
+                  "type": "array",
+                  "items": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

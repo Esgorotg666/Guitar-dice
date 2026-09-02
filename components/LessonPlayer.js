@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { playSequence, playProgressionChords } from '../lib/audio';
+import { playSequence, playProgressionChords, strumChord } from '../lib/audio';
 import { noteAt, SINGLE_INLAYS, DOUBLE_INLAYS } from '../lib/theory';
 
 const STRINGS = ['e','B','G','D','A','E'];
@@ -20,15 +20,37 @@ function shapeDots(shape) {
   return out;
 }
 
+function buildGroups(notes) {
+  const groups = [];
+  const index = {};
+  notes.forEach(function (n, i) {
+    if (n.group == null) return;
+    if (index[n.group] == null) {
+      index[n.group] = groups.length;
+      groups.push({
+        id: n.group,
+        role: n.role || 'line',
+        label: n.groupLabel || (n.role === 'chord' ? 'Chord' : 'Line'),
+        notes: []
+      });
+    }
+    const g = groups[index[n.group]];
+    if (n.groupLabel) g.label = n.groupLabel;
+    if (n.role) g.role = n.role;
+    g.notes.push(Object.assign({ _i:i }, n));
+  });
+  return groups;
+}
+
 export default function LessonPlayer(props) {
   const notes = props.notes || [];
+  const groups = buildGroups(notes);
+  const grouped = groups.length > 0;
   const passed = (props.shapes || []).filter(function (s) { return s && s.positions; });
-  const chordKeys = (props.chordKeys && props.chordKeys.length)
-    ? props.chordKeys
-    : ((notes[0] && notes[0].chordKeys) || []);
+  const chordKeys = grouped ? [] : ((props.chordKeys && props.chordKeys.length) ? props.chordKeys : ((notes[0] && notes[0].chordKeys) || []));
   const [loaded, setLoaded] = useState([]);
   const shapes = passed.length ? passed : loaded;
-  const chordMode = !!(props.chordMode || chordKeys.length >= 2) && shapes.length >= 2;
+  const chordMode = !grouped && !!(props.chordMode || chordKeys.length >= 2) && shapes.length >= 2;
   const baseBpm = props.bpm || 80;
   const legend = props.legend || FALLBACK_LEGEND;
   const legendOrder = props.legendOrder || FALLBACK_ORDER;
@@ -42,7 +64,7 @@ export default function LessonPlayer(props) {
   useEffect(function () { setBpm(baseBpm); }, [baseBpm]);
   useEffect(function () { return function () { if (stopRef.current) stopRef.current(); }; }, []);
   useEffect(function () {
-    if (passed.length || chordKeys.length < 2) return;
+    if (grouped || passed.length || chordKeys.length < 2) return;
     var alive = true;
     fetch('/data/musicdata.json').then(function (r) { return r.json(); }).then(function (d) {
       if (!alive || !d || !d.chords) return;
@@ -53,35 +75,48 @@ export default function LessonPlayer(props) {
     return function () { alive = false; };
   }, [chordKeys.join('|')]);
 
-  const boardNotes = chordMode
-    ? shapeDots(shapes[Math.max(0, active)] || shapes[0])
-    : notes;
+  const currentGroup = grouped ? groups[Math.max(0, Math.min(active, groups.length - 1))] : null;
+  const boardNotes = grouped
+    ? (currentGroup ? currentGroup.notes : notes)
+    : (chordMode ? shapeDots(shapes[Math.max(0, active)] || shapes[0]) : notes);
   const maxFret = boardNotes.reduce(function (m, n) { return Math.max(m, n.fret || 0); }, 0);
   const frets = Math.max(7, Math.min(15, maxFret + 2));
   const W = 880, H = 236, padL = 40, padT = 30;
   const gw = W - padL - 20, gh = H - padT - 56;
   const dx = gw / frets, dy = gh / 5;
-
-  useEffect(function () {
-    if (!scrollRef.current) return;
-    const box = scrollRef.current;
-    const max = box.scrollWidth - box.clientWidth;
-    if (max <= 4) return;
-    const focus = boardNotes[0];
-    if (!focus) return;
-    const svgX = focus.fret === 0 ? padL - 11 : padL + dx * (focus.fret - 0.5);
-    const target = (svgX / W) * box.scrollWidth - box.clientWidth / 2;
-    box.scrollTo({ left: Math.max(0, Math.min(target, max)), behavior: 'smooth' });
-  }, [active, chordMode]);
+  const holdAll = chordMode || (grouped && currentGroup && currentGroup.role === 'chord');
 
   async function toggle() {
     if (playing) {
       if (stopRef.current) stopRef.current();
       stopRef.current = null;
-      setPlaying(false); setActive(chordMode ? 0 : -1);
+      setPlaying(false); setActive(0);
       return;
     }
     setPlaying(true); setBlocked(false);
+    if (grouped) {
+      const spb = 60 / bpm;
+      const timers = [];
+      let delay = 0;
+      groups.forEach(function (g, gi) {
+        const start = delay;
+        timers.push(setTimeout(function () { setActive(gi); }, start * 1000));
+        if (g.role === 'chord') {
+          const positions = ['X','X','X','X','X','X'];
+          g.notes.forEach(function (nt) { positions[nt.string] = nt.fret; });
+          timers.push(setTimeout(function () { strumChord(positions, true); }, start * 1000));
+          delay += Math.max(g.notes[0] && g.notes[0].beats ? g.notes[0].beats * spb : 2 * spb, 0.8);
+        } else {
+          g.notes.forEach(function (nt) { delay += (nt.beats || 0.5) * spb; });
+          timers.push(setTimeout(function () { playSequence(g.notes, bpm); }, start * 1000));
+        }
+      });
+      timers.push(setTimeout(function () {
+        setPlaying(false); setActive(0); stopRef.current = null;
+      }, delay * 1000 + 80));
+      stopRef.current = function () { timers.forEach(clearTimeout); };
+      return;
+    }
     if (chordMode) {
       setActive(0);
       const gap = Math.round((60 / bpm) * 4 * 1000);
@@ -109,7 +144,7 @@ export default function LessonPlayer(props) {
     setBpm(next);
     if (playing && stopRef.current) {
       stopRef.current(); stopRef.current = null;
-      setPlaying(false); setActive(chordMode ? 0 : -1);
+      setPlaying(false); setActive(0);
     }
   }
 
@@ -119,15 +154,19 @@ export default function LessonPlayer(props) {
     if (n.pick) usedKeys[n.pick] = true;
     (n.tech || []).forEach(function (t) { usedKeys[t] = true; });
   });
-  const shown = chordMode ? [] : legendOrder.filter(function (k) { return usedKeys[k]; });
+  const shown = legendOrder.filter(function (k) { return usedKeys[k]; });
   function pickGlyph(p) { return p === 'U' ? 'V' : (p === 'T' ? 'T' : 'M'); }
-  const currentShape = chordMode ? shapes[Math.max(0, active)] : null;
+  const heading = grouped && currentGroup
+    ? currentGroup.label
+    : (chordMode && shapes[Math.max(0, active)] ? (shapes[Math.max(0, active)].name || shapes[Math.max(0, active)].key) : null);
 
   return (
     <div className="lessonPlayer">
-      {chordMode && currentShape ? (
+      {heading ? (
         <p className="lessonKey" style={{ margin:'0 0 8px' }}>
-          Hold the whole <strong>{currentShape.name || currentShape.key}</strong> shape — every green dot at once — then change.
+          {grouped && currentGroup && currentGroup.role === 'line'
+            ? <span>Connecting line: <strong>{heading}</strong> — use the marked hammer-ons, pull-offs, slides, and mutes.</span>
+            : <span>Hold the whole <strong>{heading}</strong> shape, then move.</span>}
         </p>
       ) : null}
       <div className="boardScroll" ref={scrollRef}>
@@ -158,17 +197,17 @@ export default function LessonPlayer(props) {
           {boardNotes.map(function (n, i) {
             const cx = n.fret === 0 ? padL-11 : padL+dx*(n.fret-0.5);
             const cy = padT + dy*(5-n.string);
-            const on = chordMode ? true : active === i;
+            const on = holdAll ? true : (!grouped && !chordMode && active === i);
             const tech = n.tech || [];
             return (
-              <g key={'n'+i+'-'+n.string+'-'+n.fret}>
-                {!chordMode && n.pick ? (
+              <g key={'n'+i+'-'+n.string+'-'+n.fret+'-'+(n.group||'x')}>
+                {!holdAll && n.pick ? (
                   <text x={cx} y={cy-16} fontSize={on?13:11} fill={on?'#ffc65c':'#7f8fa0'}
                     textAnchor="middle" fontWeight={800}>{pickGlyph(n.pick)}</text>
                 ) : null}
                 <circle cx={cx} cy={cy} r={on?14:11} fill={on?'#ffc65c':'#35c46b'} stroke={on?'#fff2d4':'#1a5c36'} strokeWidth={on?3:1.5} />
-                <text x={cx} y={cy+4} fontSize={on?12:10} fill={on?'#1f1503':'#04160c'} textAnchor="middle" fontWeight={800}>
-                  {chordMode ? (n.name || '') : (i+1)}
+                <text x={cx} y={cy+4} fontSize={on?11:10} fill={on?'#1f1503':'#04160c'} textAnchor="middle" fontWeight={800}>
+                  {holdAll ? (noteAt(n.string, n.fret) || '') : (i+1)}
                 </text>
                 {tech.length ? (
                   <text x={cx} y={cy+24} fontSize={9} fill={on?'#ffc65c':'#8b97a3'} textAnchor="middle" fontWeight={700}>
@@ -220,7 +259,13 @@ export default function LessonPlayer(props) {
 
       {blocked ? <p className="warn">No sound? On iPhone, flick the silent switch to ring mode, turn the volume up, then tap Hear it again.</p> : null}
       <div className="tabStrip">
-        {chordMode ? shapes.map(function (s, i) {
+        {grouped ? groups.map(function (g, i) {
+          return (
+            <span key={g.id} className={'tabNote' + (active === i ? ' on' : '')} onClick={function () { setActive(i); }}>
+              <b>{g.label}</b>
+            </span>
+          );
+        }) : chordMode ? shapes.map(function (s, i) {
           return (
             <span key={(s.key || s.name || i) + '-' + i}
               className={'tabNote' + (Math.max(0, active) === i ? ' on' : '')}

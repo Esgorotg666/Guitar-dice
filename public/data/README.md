@@ -1,9 +1,9 @@
-# App data
+# public/data
 
-Keep these files in GitHub:
+Static classroom and chord data shipped with the app.
 
-- `lessons-v2.json` — classroom lessons
-- `musicdata.json` — chord shapes and scales
+- `musicdata.json` — chord dictionary and modes (rolls / diagrams)
+- `lessons-v2-a.json` + `lessons-v2-b.json` — the 72 classroom lessons, split so they fit in git
+- `lessons-v2.json` — optional single-file copy; if missing, the app concatenates a + b
 
-The app loads them from `/data/...`. Next.js serves `public/` at the site root.
-`next.config.js` only falls back to Supabase if a file is missing here.
+Next serves these first. Supabase remains a fallback in `next.config.js`.

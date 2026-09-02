@@ -1,0 +1,5 @@
+.lessonGoals, .practicePlan { margin: 16px 0 8px; }
+.lessonGoals h3, .practicePlan h3 { font-size: 0.95rem; margin: 0 0 8px; }
+.lessonGoals ul, .practicePlan ol { margin: 0; padding-left: 1.15rem; }
+.lessonGoals li, .practicePlan li { margin: 0 0 6px; color: #8b97a3; line-height: 1.45; }
+.stepList li { margin-bottom: 8px; line-height: 1.45; }

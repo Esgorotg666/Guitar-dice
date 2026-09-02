@@ -11,10 +11,15 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        {/* Temporary AvantLink affiliate application verification — remove after they confirm */}
+        {/* Temporary AvantLink verification — exact strings from their email */}
+        <script type="text/javascript" src="http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&application_id=1646617" />
         <script type="text/javascript" src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&application_id=1646617" />
       </Head>
-      <body><Main /><NextScript /></body>
+      <body>
+        <script type="text/javascript" src="http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&application_id=1646617" />
+        <Main />
+        <NextScript />
+      </body>
     </Html>
   );
 }

@@ -1,4 +1,3 @@
-next.config.js
 const STORAGE = 'https://fjwkfqmyfufulwjecjlf.supabase.co/storage/v1/object/public/guitar-dice-public';
 const FN = 'https://fjwkfqmyfufulwjecjlf.supabase.co/functions/v1';
 module.exports = {

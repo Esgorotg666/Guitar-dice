@@ -5,3 +5,6 @@
 	<Mode>Verify-File</Mode>
 	<Authentication>cc541d53f4a80b0e684e927f407f35c5db9519d0</Authentication>
 </root>
+cc541d53f4a80b0e684e927f407f35c5db9519d0
+authResponse=cc541d53f4a80b0e684e927f407f35c5db9519d0
+http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=cc541d53f4a80b0e684e927f407f35c5db9519d0

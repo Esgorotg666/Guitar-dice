@@ -7,10 +7,12 @@ module.exports = {
       beforeFiles: [
         { source: '/billing/checkout', destination: FN + '/stripe-checkout' },
         { source: '/billing/portal', destination: FN + '/stripe-checkout/portal' },
-        { source: '/api/:path*', destination: FN + '/api/:path*' },
+        { source: '/api/:path*', destination: FN + '/api/:path*' }
+      ],
+      afterFiles: [
         { source: '/data/:file*', destination: STORAGE + '/app/:file*' }
       ],
-      afterFiles: [], fallback: []
+      fallback: []
     };
   }
 };

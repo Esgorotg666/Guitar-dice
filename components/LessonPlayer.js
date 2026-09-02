@@ -1,6 +1,5 @@
-
 import { useEffect, useRef, useState } from 'react';
-import { playSequence } from '../lib/audio';
+import { playSequence, playProgressionChords } from '../lib/audio';
 import { noteAt, SINGLE_INLAYS, DOUBLE_INLAYS } from '../lib/theory';
 
 const STRINGS = ['e','B','G','D','A','E'];
@@ -11,8 +10,20 @@ const FALLBACK_LEGEND = {
 };
 const FALLBACK_ORDER = ['D','U','T','PM','3','2','H','P','B','S','TAP','~','L'];
 
+function shapeDots(shape) {
+  const positions = (shape && shape.positions) || [];
+  const out = [];
+  positions.forEach(function (p, stringIdx) {
+    if (p === 'X' || p === 'x' || p == null) return;
+    out.push({ string: stringIdx, fret: Number(p), name: noteAt(stringIdx, Number(p)) });
+  });
+  return out;
+}
+
 export default function LessonPlayer(props) {
   const notes = props.notes || [];
+  const shapes = (props.shapes || []).filter(function (s) { return s && s.positions; });
+  const chordMode = !!(props.chordMode && shapes.length >= 2);
   const baseBpm = props.bpm || 80;
   const legend = props.legend || FALLBACK_LEGEND;
   const legendOrder = props.legendOrder || FALLBACK_ORDER;
@@ -26,33 +37,50 @@ export default function LessonPlayer(props) {
   useEffect(function () { setBpm(baseBpm); }, [baseBpm]);
   useEffect(function () { return function () { if (stopRef.current) stopRef.current(); }; }, []);
 
-  const maxFret = notes.reduce(function (m, n) { return Math.max(m, n.fret); }, 0);
+  const boardNotes = chordMode
+    ? (active >= 0 && shapes[active] ? shapeDots(shapes[active]) : shapeDots(shapes[0]))
+    : notes;
+  const maxFret = boardNotes.reduce(function (m, n) { return Math.max(m, n.fret || 0); }, 0);
   const frets = Math.max(7, Math.min(15, maxFret + 2));
   const W = 880, H = 236, padL = 40, padT = 30;
   const gw = W - padL - 20, gh = H - padT - 56;
   const dx = gw / frets, dy = gh / 5;
 
-  // Follow the note being played so you never have to scroll mid-lesson.
   useEffect(function () {
-    if (active < 0 || !scrollRef.current) return;
+    if (!scrollRef.current) return;
     const box = scrollRef.current;
-    const n = notes[active];
-    if (!n) return;
     const max = box.scrollWidth - box.clientWidth;
-    if (max <= 4) return; // whole board already visible
-    const svgX = n.fret === 0 ? padL - 11 : padL + dx * (n.fret - 0.5);
+    if (max <= 4) return;
+    const focus = chordMode ? boardNotes[0] : notes[active];
+    if (!focus) return;
+    const svgX = focus.fret === 0 ? padL - 11 : padL + dx * (focus.fret - 0.5);
     const target = (svgX / W) * box.scrollWidth - box.clientWidth / 2;
     box.scrollTo({ left: Math.max(0, Math.min(target, max)), behavior: 'smooth' });
-  }, [active]);
+  }, [active, chordMode]);
 
   async function toggle() {
     if (playing) {
       if (stopRef.current) stopRef.current();
       stopRef.current = null;
-      setPlaying(false); setActive(-1);
+      setPlaying(false); setActive(chordMode ? 0 : -1);
       return;
     }
     setPlaying(true); setBlocked(false);
+    if (chordMode) {
+      setActive(0);
+      const gap = Math.round((60 / bpm) * 4 * 1000);
+      const ok = await playProgressionChords(shapes, gap);
+      if (!ok) { setPlaying(false); setBlocked(true); return; }
+      const timers = [];
+      shapes.forEach(function (_, i) {
+        timers.push(setTimeout(function () { setActive(i); }, i * gap));
+      });
+      timers.push(setTimeout(function () {
+        setPlaying(false); setActive(0); stopRef.current = null;
+      }, shapes.length * gap));
+      stopRef.current = function () { timers.forEach(clearTimeout); };
+      return;
+    }
     const stop = await playSequence(notes, bpm,
       function (i) { setActive(i); },
       function (ok) { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); });
@@ -65,23 +93,27 @@ export default function LessonPlayer(props) {
     setBpm(next);
     if (playing && stopRef.current) {
       stopRef.current(); stopRef.current = null;
-      setPlaying(false); setActive(-1);
+      setPlaying(false); setActive(chordMode ? 0 : -1);
     }
   }
 
   const pct = Math.round((bpm / baseBpm) * 100);
-  // only show legend rows this lesson actually uses
   const usedKeys = {};
   notes.forEach(function (n) {
     if (n.pick) usedKeys[n.pick] = true;
     (n.tech || []).forEach(function (t) { usedKeys[t] = true; });
   });
-  const shown = legendOrder.filter(function (k) { return usedKeys[k]; });
-
+  const shown = chordMode ? [] : legendOrder.filter(function (k) { return usedKeys[k]; });
   function pickGlyph(p) { return p === 'U' ? 'V' : (p === 'T' ? 'T' : 'M'); }
+  const currentShape = chordMode ? shapes[Math.max(0, active)] : null;
 
   return (
     <div className="lessonPlayer">
+      {chordMode && currentShape ? (
+        <p className="lessonKey" style={{ margin:'0 0 8px' }}>
+          Hold the whole <strong>{currentShape.name || currentShape.key}</strong> shape — every green dot at once — then change.
+        </p>
+      ) : null}
       <div className="boardScroll" ref={scrollRef}>
         <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role="img" aria-label="Lesson fretboard">
           <rect x={padL} y={padT} width={gw} height={gh} fill="#0d1319" rx={4} />
@@ -107,20 +139,21 @@ export default function LessonPlayer(props) {
               </g>
             );
           })}
-          {notes.map(function (n, i) {
+          {boardNotes.map(function (n, i) {
             const cx = n.fret === 0 ? padL-11 : padL+dx*(n.fret-0.5);
             const cy = padT + dy*(5-n.string);
-            const on = active === i;
+            const on = chordMode ? true : active === i;
             const tech = n.tech || [];
             return (
-              <g key={'n'+i}>
-                {/* pick stroke sits above the note: M = down, V = up, T = tremolo */}
-                {n.pick ? (
+              <g key={'n'+i+'-'+n.string+'-'+n.fret}>
+                {!chordMode && n.pick ? (
                   <text x={cx} y={cy-16} fontSize={on?13:11} fill={on?'#ffc65c':'#7f8fa0'}
                     textAnchor="middle" fontWeight={800}>{pickGlyph(n.pick)}</text>
                 ) : null}
                 <circle cx={cx} cy={cy} r={on?14:11} fill={on?'#ffc65c':'#35c46b'} stroke={on?'#fff2d4':'#1a5c36'} strokeWidth={on?3:1.5} />
-                <text x={cx} y={cy+4} fontSize={on?12:10} fill={on?'#1f1503':'#04160c'} textAnchor="middle" fontWeight={800}>{i+1}</text>
+                <text x={cx} y={cy+4} fontSize={on?12:10} fill={on?'#1f1503':'#04160c'} textAnchor="middle" fontWeight={800}>
+                  {chordMode ? (n.name || '') : (i+1)}
+                </text>
                 {tech.length ? (
                   <text x={cx} y={cy+24} fontSize={9} fill={on?'#ffc65c':'#8b97a3'} textAnchor="middle" fontWeight={700}>
                     {tech.join(' ')}
@@ -171,7 +204,15 @@ export default function LessonPlayer(props) {
 
       {blocked ? <p className="warn">No sound? On iPhone, flick the silent switch to ring mode, turn the volume up, then tap Hear it again.</p> : null}
       <div className="tabStrip">
-        {notes.map(function (n, i) {
+        {chordMode ? shapes.map(function (s, i) {
+          return (
+            <span key={(s.key || s.name || i) + '-' + i}
+              className={'tabNote' + (Math.max(0, active) === i ? ' on' : '')}
+              onClick={function () { setActive(i); }}>
+              <b>{s.name || s.key}</b>
+            </span>
+          );
+        }) : notes.map(function (n, i) {
           return (
             <span key={i} className={'tabNote' + (active === i ? ' on' : '')}>
               <b>{STRINGS[5-n.string]}</b>{n.fret}<i>{noteAt(n.string, n.fret)}</i>

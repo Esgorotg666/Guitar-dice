@@ -22,13 +22,18 @@ function shapeDots(shape) {
 
 export default function LessonPlayer(props) {
   const notes = props.notes || [];
-  const shapes = (props.shapes || []).filter(function (s) { return s && s.positions; });
-  const chordMode = !!(props.chordMode && shapes.length >= 2);
+  const passed = (props.shapes || []).filter(function (s) { return s && s.positions; });
+  const chordKeys = (props.chordKeys && props.chordKeys.length)
+    ? props.chordKeys
+    : ((notes[0] && notes[0].chordKeys) || []);
+  const [loaded, setLoaded] = useState([]);
+  const shapes = passed.length ? passed : loaded;
+  const chordMode = !!(props.chordMode || chordKeys.length >= 2) && shapes.length >= 2;
   const baseBpm = props.bpm || 80;
   const legend = props.legend || FALLBACK_LEGEND;
   const legendOrder = props.legendOrder || FALLBACK_ORDER;
   const [bpm, setBpm] = useState(baseBpm);
-  const [active, setActive] = useState(-1);
+  const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const stopRef = useRef(null);
@@ -36,9 +41,20 @@ export default function LessonPlayer(props) {
 
   useEffect(function () { setBpm(baseBpm); }, [baseBpm]);
   useEffect(function () { return function () { if (stopRef.current) stopRef.current(); }; }, []);
+  useEffect(function () {
+    if (passed.length || chordKeys.length < 2) return;
+    var alive = true;
+    fetch('/data/musicdata.json').then(function (r) { return r.json(); }).then(function (d) {
+      if (!alive || !d || !d.chords) return;
+      setLoaded(chordKeys.map(function (k) {
+        return d.chords[k] ? Object.assign({ key:k }, d.chords[k]) : null;
+      }).filter(Boolean));
+    }).catch(function () {});
+    return function () { alive = false; };
+  }, [chordKeys.join('|')]);
 
   const boardNotes = chordMode
-    ? (active >= 0 && shapes[active] ? shapeDots(shapes[active]) : shapeDots(shapes[0]))
+    ? shapeDots(shapes[Math.max(0, active)] || shapes[0])
     : notes;
   const maxFret = boardNotes.reduce(function (m, n) { return Math.max(m, n.fret || 0); }, 0);
   const frets = Math.max(7, Math.min(15, maxFret + 2));
@@ -51,7 +67,7 @@ export default function LessonPlayer(props) {
     const box = scrollRef.current;
     const max = box.scrollWidth - box.clientWidth;
     if (max <= 4) return;
-    const focus = chordMode ? boardNotes[0] : notes[active];
+    const focus = boardNotes[0];
     if (!focus) return;
     const svgX = focus.fret === 0 ? padL - 11 : padL + dx * (focus.fret - 0.5);
     const target = (svgX / W) * box.scrollWidth - box.clientWidth / 2;

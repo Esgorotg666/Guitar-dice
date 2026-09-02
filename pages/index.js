@@ -11,7 +11,8 @@ import Account from '../components/Account';
 import DiceConfig from '../components/DiceConfig';
 import SongBuilder from '../components/SongBuilder';
 import { STYLES, GENRES, SKILLS, rollProgression, rollScale, practiceTip } from '../lib/style';
-import { lessonsFor, isStretch, enrichLesson } from '../lib/lessons';
+import { lessonsFor, isStretch, enrichLesson, mergeLessonLists } from '../lib/lessons';
+import { NECK_SYSTEM_LESSONS } from '../lib/neckSystems';
 import { rollBridge, defaultSlots, sanitiseSlots } from '../lib/bridge';
 import { strumChord, playProgressionChords } from '../lib/audio';
 import { chordColor, chordPitchClasses, voicingLabel, chordSheet, scaleForChord, bridgeScale } from '../lib/theory';
@@ -67,7 +68,7 @@ export default function Home() {
     fetch('/data/musicdata.json').then(function (r) { return r.json(); }).catch(function () { return null; })
       .then(function (d) { if (alive) setData(d); });
     fetch('/data/lessons-v2.json').then(function (r) { return r.json(); }).catch(function () { return { lessons:[] }; })
-      .then(function (d) { if (alive && d) setLessonFile({ lessons:d.lessons || [], legend:d.legend || null, legendOrder:d.legendOrder || null }); });
+      .then(function (d) { if (alive && d) setLessonFile({ lessons:mergeLessonLists(d.lessons || [], NECK_SYSTEM_LESSONS), legend:d.legend || null, legendOrder:d.legendOrder || null }); });
     refresh().then(function (u) {
       if (!alive) return;
       const max = (u && u.diceCount) || 2;
@@ -207,8 +208,7 @@ export default function Home() {
       scale: scale ? scale.root + ' ' + scale.mode.name : null
     });
     if (navigator.share) navigator.share({ title:'Guitar Dice progression', text:text }).catch(function () {});
-    else if (navigator.clipboard) { navigator.clipboard.writeText(text); setMsg('Chord sheet copied to your clipboard');
-    }
+    else if (navigator.clipboard) { navigator.clipboard.writeText(text); setMsg('Chord sheet copied to your clipboard'); }
   }
   async function hearProgression() {
     const ok = await playProgressionChords(items.map(function (i) { return i.chord; }), 900);
@@ -528,7 +528,7 @@ export default function Home() {
               <div className="card">
                 <h3>Classroom</h3>
                 <p className="muted sm">
-                  {lessons.length} lessons for {styleMeta.label.toLowerCase()}, sorted for {genreLabel} at {skill} level. {genreLabel} lessons come first, then universal technique. Each one is a full 10-12 minute practice block, not a four-line stub.
+                  {lessons.length} lessons for {styleMeta.label.toLowerCase()}, sorted for {genreLabel} at {skill} level. Neck-system lessons sit first for lead. Each one is a full 10-12 minute practice block.
                 </p>
               </div>
               {!allLessons.length ? <div className="card"><p className="muted">Loading lessons...</p></div> : null}

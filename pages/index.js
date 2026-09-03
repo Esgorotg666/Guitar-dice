@@ -12,6 +12,9 @@ import DiceFocus from '../components/DiceFocus';
 import SongBuilder from '../components/SongBuilder';
 import ClassroomTab from '../components/ClassroomTab';
 import SettingsTab from '../components/SettingsTab';
+import FreeAdSlot from '../components/FreeAdSlot';
+import RewardedAd from '../components/RewardedAd';
+import { genreLook } from '../lib/genreLook';
 import { STYLES, GENRES, SKILLS, rollProgression, rollScale, practiceTip } from '../lib/style';
 import { lessonsFor, enrichLesson, mergeLessonLists } from '../lib/lessons';
 import { lessonLockedReason } from '../lib/entitlements';
@@ -60,6 +63,7 @@ export default function Home() {
   const [rollMode, setRollMode] = useState('');
   const [pathProgress, setPathProgress] = useState({ clears:{}, best:{}, badges:{} });
   const [appSettings, setAppSettings] = useState({ theme:'dark', bpm:90, a4:440, tuningId:'standard' });
+  const [showRewarded, setShowRewarded] = useState(false);
 
   function refresh() {
     return Promise.all([api('preferences'), api('usage/status'), api('streak/status'), api('auth/user'), api('billing/status')])
@@ -212,7 +216,7 @@ export default function Home() {
 
   function watchAd() {
     api('usage/watch-ad-reward', { method:'POST' }).then(function (res) {
-      if (res.ok) { setUsage(res.body); setWall(false); setMsg('Plus 3 rolls added'); }
+      if (res.ok) { setUsage(res.body); setWall(false); setShowRewarded(false); setMsg('Plus 3 rolls added'); }
       else setMsg((res.body && res.body.message) || 'No more ad rewards today');
     });
   }
@@ -335,7 +339,7 @@ export default function Home() {
     <Shell genre={genre} theme={resolvedTheme(appSettings.theme)}>
       {wall ? (
         <UpgradeWall modal outOfRolls usage={usage}
-          onClose={function () { setWall(false); }} onWatchAd={watchAd}
+          onClose={function () { setWall(false); }} onWatchAd={function () { setShowRewarded(true); }}
           onNeedAccount={function () { setWall(false); setTab('account'); }} />
       ) : null}
 
@@ -350,6 +354,10 @@ export default function Home() {
           <span className="pill">{usage && usage.unlimitedRolls ? 'unlimited' : ((usage && usage.remainingRolls) || 0) + ' rolls'}</span>
         </div>
       </header>
+
+      <div className="genreBanner"><b>{genreLook(genre).label}</b><span>{genreLook(genre).tag} · {genreLook(genre).line}</span></div>
+      <FreeAdSlot paid={paid} genre={genre} onUpgrade={function () { setTab('plans'); }} onWatchAd={function () { setShowRewarded(true); }} />
+      {showRewarded ? <RewardedAd genre={genre} onClose={function () { setShowRewarded(false); }} onComplete={watchAd} onUpgrade={function () { setShowRewarded(false); setTab('plans'); }} /> : null}
 
       <nav className="tabs">
         {[['roll','Roll'],['song','Song'],['classroom','Class'],['tools','Tools'],['saved','Saved'],['settings','Settings'],['plans','Plans'],['account','Account']].map(function (t) {

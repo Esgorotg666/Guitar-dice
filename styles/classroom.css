@@ -32,3 +32,10 @@
 .unitFold { margin-top:10px; border-top:1px solid #1e2a35; padding-top:8px; }
 .unitToggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; text-align:left; background:transparent; border:0; color:inherit; padding:8px 2px; }
 .unitToggle small { display:block; color:#8b97a3; font-size:12px; margin-top:2px; }
+.unitPlan { background:#0b1117; border:1px solid #1e2a35; border-radius:12px; padding:12px 14px; margin:0 0 10px; }
+.unitPlanMeta { display:flex; gap:8px; margin-bottom:8px; }
+.unitPlanMeta span { font-size:11px; letter-spacing:.04em; text-transform:uppercase; border:1px solid #2a3846; border-radius:999px; padding:3px 8px; color:#ffc65c; }
+.unitPlan ol { margin:0; padding-left:1.15rem; }
+.unitPlan li { margin:0 0 6px; color:#a9b6c2; font-size:13px; line-height:1.45; }
+.unitPlanStop { margin:8px 0 0; font-size:12px; color:#f0c9a8; }
+.unitPlanGo { margin-top:10px; }

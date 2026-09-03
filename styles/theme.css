@@ -1,0 +1,47 @@
+html[data-theme="light"], .themeRoot[data-theme="light"] { color:#1a2430; }
+html[data-theme="light"] body, .themeRoot[data-theme="light"]:before { background:#eef3f8; }
+.themeRoot[data-theme="light"]:after { opacity:.35; }
+.themeRoot[data-theme="light"] h1 { color:#1563b8; }
+.themeRoot[data-theme="light"] h2,
+.themeRoot[data-theme="light"] h3 { color:#15202b; }
+.themeRoot[data-theme="light"] .muted { color:#5c6b78; }
+.themeRoot[data-theme="light"] .card,
+.themeRoot[data-theme="light"] .choice,
+.themeRoot[data-theme="light"] .tile,
+.themeRoot[data-theme="light"] .lessonItem {
+  background:rgba(255,255,255,.92);
+  border-color:#c9d6e2;
+  box-shadow:0 2px 10px rgba(20,40,60,.08);
+}
+.themeRoot[data-theme="light"] .tab {
+  background:#fff;
+  border-color:#c9d6e2;
+  color:#5c6b78;
+}
+.themeRoot[data-theme="light"] .tab.on {
+  background:#e7f2ff;
+  border-color:#1563b8;
+  color:#1563b8;
+}
+.themeRoot[data-theme="light"] .pill {
+  background:#fff;
+  border-color:#c9d6e2;
+}
+.themeRoot[data-theme="light"] .field,
+.themeRoot[data-theme="light"] .chipBtn,
+.themeRoot[data-theme="light"] .chordCard,
+.themeRoot[data-theme="light"] .howto {
+  background:#f7fafc;
+  border-color:#c9d6e2;
+  color:#15202b;
+}
+.themeRoot[data-theme="light"] .chipBtn.on {
+  background:#e7f8ee;
+  border-color:#1a8a4a;
+  color:#146338;
+}
+.themeRoot[data-theme="light"] .btn.ghost {
+  border-color:#c9d6e2;
+  color:#15202b;
+}
+.themeRoot[data-theme="light"] .appFoot a { color:#5c6b78; }

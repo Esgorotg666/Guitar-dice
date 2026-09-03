@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { THEORY_GUIDES } from '../lib/theoryGuides';
 import { TECH_GUIDES } from '../lib/techGuides';
 import { guideLockedReason } from '../lib/entitlements';
@@ -17,9 +17,19 @@ function groupGuides(list) {
 export default function GuideShelf(props) {
   const kind = props.kind === 'tech' ? 'tech' : 'theory';
   const list = kind === 'tech' ? TECH_GUIDES : THEORY_GUIDES;
-  const tier = props.tier || 'free';
+  const [tier, setTier] = useState(props.tier || 'free');
   const [openId, setOpenId] = useState(null);
   const open = list.filter(function (g) { return g.id === openId; })[0];
+
+  useEffect(function () {
+    if (props.tier && props.tier !== 'free') { setTier(props.tier); return; }
+    fetch('/api/billing/status', { credentials: 'include' })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (body) {
+        if (body && (body.tier === 'premium' || body.tier === 'extreme')) setTier(body.tier);
+      })
+      .catch(function () {});
+  }, [props.tier]);
 
   if (open) {
     const gate = guideLockedReason(open, tier);

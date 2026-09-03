@@ -33,8 +33,10 @@ function detectPitch(buf, sampleRate) {
   return freq;
 }
 
-export default function Tuner() {
-  const [tuningId, setTuningId] = useState('standard');
+export default function Tuner(props) {
+  const startId = props.tuningId || 'standard';
+  const a4 = Number(props.a4) > 0 ? Number(props.a4) : 440;
+  const [tuningId, setTuningId] = useState(startId);
   const [listening, setListening] = useState(false);
   const [err, setErr] = useState('');
   const [reading, setReading] = useState(null);
@@ -46,10 +48,14 @@ export default function Tuner() {
   const ctxRef = useRef(null);
   const rafRef = useRef(null);
   const holdRef = useRef(0);
-  const tuningRef = useRef(tuningStrings('standard'));
+  const tuningRef = useRef(tuningStrings(startId, a4));
 
-  const strings = tuningStrings(tuningId);
-  useEffect(function () { tuningRef.current = tuningStrings(tuningId); setDoneStrings({}); }, [tuningId]);
+  useEffect(function () {
+    if (props.tuningId && props.tuningId !== tuningId) setTuningId(props.tuningId);
+  }, [props.tuningId]);
+
+  const strings = tuningStrings(tuningId, a4);
+  useEffect(function () { tuningRef.current = tuningStrings(tuningId, a4); setDoneStrings({}); }, [tuningId, a4]);
   useEffect(function () { return function () { stop(); }; }, []);
 
   function stop() {
@@ -89,7 +95,7 @@ export default function Tuner() {
         analyser.getFloatTimeDomainData(buf);
         const f = detectPitch(buf, c.sampleRate);
         if (f > 0) {
-          setReading(analysePitch(f));
+          setReading(analysePitch(f, a4));
           const str = nearestInTuning(f, tuningRef.current);
           setTarget(str);
           const cts = centsFromString(f, str);
@@ -138,7 +144,7 @@ export default function Tuner() {
         {TUNINGS.map(function (t) {
           return (
             <button key={t.id} className={'chipBtn' + (tuningId === t.id ? ' on' : '')}
-              onClick={function () { setTuningId(t.id); }}>{t.label}</button>
+              onClick={function () { setTuningId(t.id); if (props.onTuning) props.onTuning(t.id); }}>{t.label}</button>
           );
         })}
       </div>

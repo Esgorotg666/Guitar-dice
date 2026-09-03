@@ -1,8 +1,11 @@
 import crypto from 'crypto';
 import { secret, stripe, tierForPrice } from '../../../lib/stripeBilling';
-import { claimEvent, customerIdFrom, seenInMemory, markMemory } from '../../../lib/webhookIdempotency';
+import { alreadyStored, persistEventId, customerIdFrom, seenInMemory } from '../../../lib/webhookIdempotency';
 
 export const config = { api: { bodyParser: false } };
+
+const PAID_SESSION = { complete: 1, paid: 1 };
+const LIVE_SUB = { active: 1, trialing: 1 };
 
 function rawBody(req) {
   return new Promise(function (resolve, reject) {
@@ -42,22 +45,34 @@ function verify(payload, header, whsec) {
   try { return JSON.parse(payload.toString('utf8')); } catch (e) { return null; }
 }
 
-async function liveEvent(id) {
-  if (!id) return null;
-  try { return await stripe('/events/' + id, 'GET'); } catch (e) { return null; }
+function payable(event) {
+  const obj = event.data && event.data.object;
+  if (!obj) return { ok: false, reason: 'no object' };
+  if (event.type === 'checkout.session.completed') {
+    const status = String(obj.status || '');
+    const pay = String(obj.payment_status || '');
+    if (PAID_SESSION[status] || PAID_SESSION[pay]) return { ok: true };
+    return { ok: false, reason: 'session not paid (' + status + '/' + pay + ')' };
+  }
+  if (event.type === 'customer.subscription.updated') {
+    const st = String(obj.status || '');
+    if (LIVE_SUB[st]) return { ok: true };
+    return { ok: false, reason: 'subscription not live (' + st + ')' };
+  }
+  if (event.type === 'customer.subscription.deleted') return { ok: true };
+  return { ok: true };
 }
 
 async function stamp(event) {
   const obj = event.data && event.data.object;
   if (!obj) return;
+  const customerId = customerIdFrom(event);
   if (event.type === 'checkout.session.completed') {
     const username = (obj.metadata && obj.metadata.gd_username) || obj.client_reference_id;
-    const customer = obj.customer;
-    if (customer && username) {
-      await stripe('/customers/' + customer, 'POST', {
-        'metadata[gd_username]': username,
-        'metadata[gd_plan]': (obj.metadata && obj.metadata.gd_plan) || '',
-        'metadata[gd_last_evt]': event.id
+    if (customerId && username) {
+      await persistEventId(event.id, customerId, {
+        gd_username: username,
+        gd_plan: (obj.metadata && obj.metadata.gd_plan) || ''
       });
     }
     return;
@@ -65,11 +80,8 @@ async function stamp(event) {
   if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
     const price = obj.items && obj.items.data && obj.items.data[0] && obj.items.data[0].price;
     const tier = event.type === 'customer.subscription.deleted' ? 'free' : (tierForPrice(price && price.id) || 'free');
-    if (obj.customer) {
-      await stripe('/customers/' + obj.customer, 'POST', {
-        'metadata[gd_tier]': tier,
-        'metadata[gd_last_evt]': event.id
-      });
+    if (customerId) {
+      await persistEventId(event.id, customerId, { gd_tier: tier });
     }
   }
 }
@@ -88,15 +100,26 @@ export default async function handler(req, res) {
   if (seenInMemory(parsed.id)) {
     return res.status(200).json({ received: true, duplicate: true, via: 'memory', id: parsed.id });
   }
-  markMemory(parsed.id);
 
-  const event = (await liveEvent(parsed.id)) || parsed;
-  const customerId = customerIdFrom(event);
-
+  let event;
   try {
-    const claim = await claimEvent(event.id, customerId);
-    if (claim.duplicate) {
-      return res.status(200).json({ received: true, duplicate: true, via: claim.via, id: event.id });
+    event = await stripe('/events/' + parsed.id, 'GET');
+  } catch (e) {
+    return res.status(500).json({ message: 'Could not retrieve event from Stripe' });
+  }
+  if (!event || event.id !== parsed.id) {
+    return res.status(500).json({ message: 'Could not retrieve event from Stripe' });
+  }
+
+  const customerId = customerIdFrom(event);
+  try {
+    const seen = await alreadyStored(event.id, customerId);
+    if (seen.duplicate) {
+      return res.status(200).json({ received: true, duplicate: true, via: seen.via, id: event.id });
+    }
+    const pay = payable(event);
+    if (!pay.ok) {
+      return res.status(200).json({ received: true, ignored: true, reason: pay.reason, id: event.id });
     }
     await stamp(event);
     return res.status(200).json({ received: true, duplicate: false, type: event.type, id: event.id });

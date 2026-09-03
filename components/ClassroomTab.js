@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import LessonPlayer from './LessonPlayer';
 import PlayAlong from './PlayAlong';
 import ChallengePath from './ChallengePath';
 import ChordDiagram from './ChordDiagram';
+import GuideShelf from './GuideShelf';
 import { chordColor, voicingLabel } from '../lib/theory';
 import { strumChord } from '../lib/audio';
 import { PASS_SCORE } from '../lib/path';
@@ -15,6 +17,15 @@ export default function ClassroomTab(props) {
   const progress = props.progress;
   const setProgress = props.setProgress;
   const lessonFile = props.lessonFile || {};
+  const [shelf, setShelf] = useState('path');
+
+  const nav = (
+    <div className="levelRow learnNav">
+      <button className={'chipBtn' + (shelf === 'path' ? ' on' : '')} onClick={function () { setShelf('path'); }}>Path</button>
+      <button className={'chipBtn' + (shelf === 'theory' ? ' on' : '')} onClick={function () { setShelf('theory'); }}>Theory</button>
+      <button className={'chipBtn' + (shelf === 'tech' ? ' on' : '')} onClick={function () { setShelf('tech'); }}>Tech</button>
+    </div>
+  );
 
   if (lesson) {
     return (
@@ -70,13 +81,20 @@ export default function ClassroomTab(props) {
   }
 
   return (
-    <ChallengePath
-      style={style}
-      lessons={lessons}
-      progress={progress}
-      pass={PASS_SCORE}
-      onOpen={props.onOpen}
-      onUpgrade={props.onUpgrade}
-    />
+    <div>
+      {nav}
+      {shelf === 'theory' ? <GuideShelf kind="theory" tier={props.tier} onUpgrade={props.onUpgrade} /> : null}
+      {shelf === 'tech' ? <GuideShelf kind="tech" tier={props.tier} onUpgrade={props.onUpgrade} /> : null}
+      {shelf === 'path' ? (
+        <ChallengePath
+          style={style}
+          lessons={lessons}
+          progress={progress}
+          pass={PASS_SCORE}
+          onOpen={props.onOpen}
+          onUpgrade={props.onUpgrade}
+        />
+      ) : null}
+    </div>
   );
 }

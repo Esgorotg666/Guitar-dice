@@ -7,7 +7,7 @@
 .badgeRow { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
 .badgeChip { font-size:11px; letter-spacing:.04em; text-transform:uppercase; border:1px solid #2a3846; border-radius:999px; padding:5px 9px; color:#6f7d8a; }
 .badgeChip.on { border-color:#c9a227; color:#f0d37a; background:#241c08; }
-.pathList { list-style:none; margin:12px 0 18px; padding:0; }
+.pathList { list-style:none; margin:0 0 6px; padding:0; }
 .pathList li { margin:0 0 8px; }
 .pathNode { width:100%; display:flex; align-items:center; gap:12px; text-align:left; background:#0d1319; border:1px solid #1e2a35; border-radius:12px; padding:12px 14px; color:inherit; }
 .pathNode.current { border-color:#ffc65c; box-shadow:0 0 0 1px #ffc65c33; }
@@ -24,3 +24,11 @@
 .pathResult { margin-top:10px; display:flex; flex-direction:column; gap:2px; }
 .pathResult.pass strong { color:#7dffa8; }
 .pathResult.fail strong { color:#ffb4a2; }
+.unitBlock { margin:16px 0 4px; }
+.unitHead { padding:4px 2px 8px; }
+.unitHead strong { display:block; font-family:Oxanium,sans-serif; font-size:1.02rem; }
+.unitHead small { color:#8b97a3; font-size:12px; }
+.levelRow { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 6px; }
+.unitFold { margin-top:10px; border-top:1px solid #1e2a35; padding-top:8px; }
+.unitToggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; text-align:left; background:transparent; border:0; color:inherit; padding:8px 2px; }
+.unitToggle small { display:block; color:#8b97a3; font-size:12px; margin-top:2px; }

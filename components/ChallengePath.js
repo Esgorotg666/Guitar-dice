@@ -81,10 +81,10 @@ export default function ChallengePath(props) {
     return (
       <li key={l.id}>
         <button className={cls} onClick={function () { openLesson(l); }}>
-          <span className="pathIdx">{cleared ? '\u2713' : (idx + 1)}</span>
+          <span className="pathIdx">{cleared ? 'OK' : (idx + 1)}</span>
           <span className="pathBody">
             <strong>{l.title}</strong>
-            <small>{s.skill} \u00b7 {l.level}{score ? ' \u00b7 best ' + score + '%' : ''}{score >= GOLD_SCORE ? ' gold' : ''}</small>
+            <small>{s.skill} | {l.level}{score ? ' | best ' + score + '%' : ''}{score >= GOLD_SCORE ? ' gold' : ''}</small>
           </span>
           <span className="pathLock">{l.gate ? 'upgrade' : (!unlocked ? 'locked' : (cleared ? 'replay' : 'play'))}</span>
         </button>
@@ -105,7 +105,7 @@ export default function ChallengePath(props) {
             const on = !!(progress.badges && progress.badges[b.id]);
             return (
               <span key={b.id} className={'badgeChip' + (on ? ' on' : '')} title={b.hint}>
-                {on ? '\u2605' : '\u25cb'} {b.name}
+                {on ? '*' : 'o'} {b.name}
               </span>
             );
           })}
@@ -153,7 +153,7 @@ export default function ChallengePath(props) {
                 <button className="unitToggle" onClick={function () { setOpenUnit(shown && extraGroups.length > 1 ? null : g.unit.id); }}>
                   <span>
                     <strong>{g.unit.title}</strong>
-                    <small>{g.lessons.length} lesson{g.lessons.length === 1 ? '' : 's'} \u00b7 {g.unit.blurb}</small>
+                    <small>{g.lessons.length} lesson{g.lessons.length === 1 ? '' : 's'} | {g.unit.blurb}</small>
                   </span>
                   <span className="pathLock">{shown ? 'hide' : 'show'}</span>
                 </button>

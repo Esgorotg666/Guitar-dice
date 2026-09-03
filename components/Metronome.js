@@ -12,7 +12,8 @@ const SUBDIVISIONS = [
 
 export default function Metronome(props) {
   const paid = !!props.paid;
-  const [bpm, setBpm] = useState(90);
+  const startBpm = Math.max(40, Math.min(240, Number(props.defaultBpm) || 90));
+  const [bpm, setBpm] = useState(startBpm);
   const [beats, setBeats] = useState(4);
   const [sub, setSub] = useState(1);
   const [sound, setSound] = useState('click');
@@ -23,6 +24,17 @@ export default function Metronome(props) {
   const timerRef = useRef(null);
   const nextRef = useRef(0);
   const countRef = useRef(0);
+
+  useEffect(function () {
+    const next = Math.max(40, Math.min(240, Number(props.defaultBpm) || 90));
+    setBpm(next);
+  }, [props.defaultBpm]);
+
+  function changeBpm(n) {
+    const v = Math.max(40, Math.min(240, n));
+    setBpm(v);
+    if (props.onBpm) props.onBpm(v);
+  }
 
   async function toggle() {
     if (running) { setRunning(false); return; }
@@ -73,12 +85,12 @@ export default function Metronome(props) {
         })}
       </div>
       <div className="bpmRow">
-        <button className="btn ghost sm" onClick={function () { setBpm(Math.max(40, bpm-5)); }}>-</button>
+        <button className="btn ghost sm" onClick={function () { changeBpm(bpm-5); }}>-</button>
         <div className="bpmVal"><strong>{bpm}</strong><span>BPM</span></div>
-        <button className="btn ghost sm" onClick={function () { setBpm(Math.min(240, bpm+5)); }}>+</button>
+        <button className="btn ghost sm" onClick={function () { changeBpm(bpm+5); }}>+</button>
       </div>
       <input className="slider" type="range" min={40} max={240} value={bpm}
-        onChange={function (e) { setBpm(Number(e.target.value)); }} />
+        onChange={function (e) { changeBpm(Number(e.target.value)); }} />
       {blocked ? <p className="warn">No sound? On iPhone the silent switch on the side of the phone mutes web audio. Flick it to ring mode, turn the volume up, then press Start again.</p> : null}
       {paid ? (
         <div className="metroOpts">

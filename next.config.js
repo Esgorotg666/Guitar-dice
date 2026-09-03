@@ -19,9 +19,14 @@ module.exports = {
   async rewrites() {
     return {
       beforeFiles: [
-        { source: '/billing/checkout', destination: FN + '/stripe-checkout' },
-        { source: '/billing/portal', destination: FN + '/stripe-checkout/portal' },
-        { source: '/api/:path*', destination: FN + '/api/:path*' }
+        { source: '/api/auth/:path*', destination: FN + '/api/auth/:path*' },
+        { source: '/api/plans', destination: FN + '/api/plans' },
+        { source: '/api/usage/:path*', destination: FN + '/api/usage/:path*' },
+        { source: '/api/preferences', destination: FN + '/api/preferences' },
+        { source: '/api/preferences/:path*', destination: FN + '/api/preferences/:path*' },
+        { source: '/api/streak/:path*', destination: FN + '/api/streak/:path*' },
+        { source: '/api/chord-progressions', destination: FN + '/api/chord-progressions' },
+        { source: '/api/chord-progressions/:path*', destination: FN + '/api/chord-progressions/:path*' }
       ],
       afterFiles: [
         { source: '/data/:file*', destination: STORAGE + '/app/:file*' }

@@ -4,16 +4,17 @@ import ChordDiagram from '../components/ChordDiagram';
 import Fretboard from '../components/Fretboard';
 import Metronome from '../components/Metronome';
 import Tuner from '../components/Tuner';
-import LessonPlayer from '../components/LessonPlayer';
 import LoopPlayer from '../components/LoopPlayer';
 import UpgradeWall from '../components/UpgradeWall';
 import Account from '../components/Account';
 import DiceConfig from '../components/DiceConfig';
 import DiceFocus from '../components/DiceFocus';
 import SongBuilder from '../components/SongBuilder';
+import ClassroomTab from '../components/ClassroomTab';
 import { STYLES, GENRES, SKILLS, rollProgression, rollScale, practiceTip } from '../lib/style';
-import { lessonsFor, isStretch, enrichLesson, mergeLessonLists } from '../lib/lessons';
+import { lessonsFor, enrichLesson, mergeLessonLists } from '../lib/lessons';
 import { lessonLockedReason } from '../lib/entitlements';
+import { loadProgress } from '../lib/pathProgress';
 import { NECK_SYSTEM_LESSONS } from '../lib/neckSystems';
 import { rollBridge, defaultSlots, sanitiseSlots } from '../lib/bridge';
 import { strumChord, playProgressionChords } from '../lib/audio';
@@ -55,6 +56,7 @@ export default function Home() {
   const [slots, setSlots] = useState(defaultSlots(2));
   const [rollKey, setRollKey] = useState('');
   const [rollMode, setRollMode] = useState('');
+  const [pathProgress, setPathProgress] = useState({ clears:{}, best:{}, badges:{} });
 
   function refresh() {
     return Promise.all([api('preferences'), api('usage/status'), api('streak/status'), api('auth/user')])
@@ -73,6 +75,7 @@ export default function Home() {
       .then(function (d) { if (alive) setData(d); });
     fetch('/data/lessons-v2.json').then(function (r) { return r.json(); }).catch(function () { return { lessons:[] }; })
       .then(function (d) { if (alive && d) setLessonFile({ lessons:mergeLessonLists(d.lessons || [], NECK_SYSTEM_LESSONS), legend:d.legend || null, legendOrder:d.legendOrder || null }); });
+    setPathProgress(loadProgress());
     refresh().then(function (u) {
       if (!alive) return;
       const max = (u && u.diceCount) || 2;
@@ -473,86 +476,18 @@ export default function Home() {
       {tab === 'plans' ? <div className="card"><UpgradeWall usage={usage} onNeedAccount={function () { setTab('account'); }} /></div> : null}
 
       {tab === 'classroom' ? (
-        <div>
-          {lesson ? (
-            <div>
-              <button className="backBtn" onClick={function () { setOpenLesson(null); }}>Back to lessons</button>
-              <div className="card">
-                <div className="lessonTop">
-                  <strong style={{ fontSize:'1.1rem' }}>{lesson.title}</strong>
-                  <span className={'levelTag ' + lesson.level}>{lesson.level}</span>
-                </div>
-                <p className="lessonKey">Key: {lesson.key} - written at {lesson.bpm} BPM{lesson.genre && lesson.genre !== 'any' ? ' - ' + lesson.genre : ''}</p>
-                <p className="lessonSummary">{lesson.summary}</p>
-                {lesson.goals && lesson.goals.length ? (
-                  <div className="lessonGoals">
-                    <h3>What you will get from this</h3>
-                    <ul>{lesson.goals.map(function (g, i) { return <li key={i}>{g}</li>; })}</ul>
-                  </div>
-                ) : null}
-                <LessonPlayer notes={lesson.notes} bpm={lesson.bpm}
-                  legend={lessonFile.legend} legendOrder={lessonFile.legendOrder} />
-                <div className="howto">
-                  <b>Reading the diagram:</b> numbered green dots are the notes in playing order, and the board scrolls itself to follow the note being played. The letter above each dot is the pick stroke - M is a downstroke, V is an upstroke. Anything under the dot is a technique, listed in the legend.
-                </div>
-                <h3 style={{ marginTop:20 }}>How to play it</h3>
-                <ol className="stepList">{lesson.steps.map(function (s, i) { return <li key={i}>{s}</li>; })}</ol>
-                {lesson.practicePlan && lesson.practicePlan.length ? (
-                  <div className="practicePlan">
-                    <h3>12-minute practice plan</h3>
-                    <ol>{lesson.practicePlan.map(function (s, i) { return <li key={i}>{s}</li>; })}</ol>
-                  </div>
-                ) : null}
-                {lesson.watchFor ? <div className="watchFor"><strong>Watch for</strong>{lesson.watchFor}</div> : null}
-                {lesson.chords && data ? (
-                  <div style={{ marginTop:18 }}>
-                    <h3>Chord shapes used</h3>
-                    <div className="chordRow">
-                      {lesson.chords.map(function (k, i) {
-                        const c = data.chords[k];
-                        if (!c) return null;
-                        const col = chordColor(i);
-                        return (
-                          <div key={k} className="chordCard" style={{ borderColor:col.dot }} onClick={function () { strumChord(c.positions, true); }}>
-                            <strong>{c.name}</strong>
-                            <span className="chordPos">{voicingLabel(c)}</span>
-                            <ChordDiagram chord={c} accent={col} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div className="card">
-                <h3>Classroom</h3>
-                <p className="muted sm">
-                  {lessons.length} lessons for {styleMeta.label.toLowerCase()}, sorted for {genreLabel} at {skill} level. Free opens entry lessons. Premium adds intermediate. Extreme adds advanced, master, and neck systems.
-                </p>
-              </div>
-              {!allLessons.length ? <div className="card"><p className="muted">Loading lessons...</p></div> : null}
-              {lessons.map(function (l) {
-                const stretch = isStretch(l, skill);
-                return (
-                  <button key={l.id} className="lessonItem" onClick={function () { if (l.gate) { setTab('plans'); return; } setOpenLesson(l.id); }}>
-                    <div className="lessonTop">
-                      <strong>{l.title}</strong>
-                      <span className={'levelTag ' + ((l.gate || stretch) ? 'locked' : l.level)}>{l.gate ? 'upgrade' : (stretch ? 'stretch' : l.level)}</span>
-                    </div>
-                    <p className="lessonSummary">{l.summary}</p>
-                    <p className="lessonKey">
-                      {l.genre && l.genre !== 'any' ? <span className="genreTag">{l.genre}</span> : null}
-                      {l.key} - {l.bpm} BPM - {l.notes.length} notes
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <ClassroomTab
+          lessons={lessons}
+          lesson={lesson}
+          data={data}
+          style={style}
+          progress={pathProgress}
+          setProgress={setPathProgress}
+          lessonFile={lessonFile}
+          onBack={function () { setOpenLesson(null); }}
+          onOpen={setOpenLesson}
+          onUpgrade={function () { setTab('plans'); }}
+        />
       ) : null}
 
       {tab === 'tools' ? <div><Tuner /><Metronome paid={paid} onUpgrade={function () { setTab('plans'); }} /></div> : null}

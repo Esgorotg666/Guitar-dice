@@ -14,8 +14,13 @@ export default function UpgradeWall(props) {
   }, []);
 
   function startCheckout(plan) {
+    if (!usage.hasAccount) {
+      setErr('');
+      if (props.onNeedAccount) props.onNeedAccount();
+      return;
+    }
     setBusy(plan); setErr('');
-    fetch('/billing/checkout', {
+    fetch('/api/billing/checkout', {
       method:'POST', credentials:'include',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ plan:plan })
@@ -78,8 +83,8 @@ export default function UpgradeWall(props) {
                 {isCurrent ? <button className="btn ghost wide" disabled>Your current plan</button>
                   : paid ? (
                     <button className={'btn ' + (p.tier === 'extreme' ? 'green' : 'primary') + ' wide'}
-                      disabled={busy === p.tier} onClick={function () { startCheckout(p.tier); }}>
-                      {busy === p.tier ? 'Opening checkout...' : 'Get ' + p.label}
+                      disabled={busy === p.tier || !hasAccount} onClick={function () { startCheckout(p.tier); }}>
+                      {!hasAccount ? 'Sign in to buy' : (busy === p.tier ? 'Opening checkout...' : 'Get ' + p.label)}
                     </button>
                   ) : null}
               </div>
@@ -88,7 +93,7 @@ export default function UpgradeWall(props) {
         </div>
         {err ? <p className="warn">{err}</p> : null}
         <p className="muted sm" style={{ marginTop:14 }}>Cancel any time. Payments handled by Stripe - card details never touch Guitar Dice.</p>
-        {current !== 'free' ? <p style={{ marginTop:8 }}><a href="/billing/portal">Manage or cancel your subscription</a></p> : null}
+        {current !== 'free' ? <p style={{ marginTop:8 }}><a href="/api/billing/portal">Manage or cancel your subscription</a></p> : null}
       </div>
     </div>
   );

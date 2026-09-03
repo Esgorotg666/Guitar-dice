@@ -29,6 +29,7 @@
 .unitHead strong { display:block; font-family:Oxanium,sans-serif; font-size:1.02rem; }
 .unitHead small { color:#8b97a3; font-size:12px; }
 .levelRow { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 6px; }
+.learnNav { margin:0 0 8px; }
 .unitFold { margin-top:10px; border-top:1px solid #1e2a35; padding-top:8px; }
 .unitToggle { width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; text-align:left; background:transparent; border:0; color:inherit; padding:8px 2px; }
 .unitToggle small { display:block; color:#8b97a3; font-size:12px; margin-top:2px; }

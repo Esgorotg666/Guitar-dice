@@ -4,6 +4,7 @@ import PlayAlong from './PlayAlong';
 import ChallengePath from './ChallengePath';
 import ChordDiagram from './ChordDiagram';
 import GuideShelf from './GuideShelf';
+import DailySession from './DailySession';
 import { chordColor, voicingLabel } from '../lib/theory';
 import { strumChord } from '../lib/audio';
 import { PASS_SCORE } from '../lib/path';
@@ -51,7 +52,7 @@ export default function ClassroomTab(props) {
             setProgress(next);
           }} />
           <div className="howto">
-            <b>Pass the node:</b> learn it with Hear it, then Play along. {PASS_SCORE}% in time and in pitch unlocks the next lesson on this path.
+            <b>Pass the node:</b> Hear it with A-B loop, then Play along. Tap mode scores timing. Mic mode scores pitch plus time. {PASS_SCORE}% unlocks the next node.
           </div>
           <h3 style={{ marginTop:20 }}>How to play it</h3>
           <ol className="stepList">{(lesson.steps || []).map(function (s, i) { return <li key={i}>{s}</li>; })}</ol>
@@ -86,14 +87,23 @@ export default function ClassroomTab(props) {
       {shelf === 'theory' ? <GuideShelf kind="theory" tier={props.tier} onUpgrade={props.onUpgrade} /> : null}
       {shelf === 'tech' ? <GuideShelf kind="tech" tier={props.tier} onUpgrade={props.onUpgrade} /> : null}
       {shelf === 'path' ? (
-        <ChallengePath
-          style={style}
-          lessons={lessons}
-          progress={progress}
-          pass={PASS_SCORE}
-          onOpen={props.onOpen}
-          onUpgrade={props.onUpgrade}
-        />
+        <div>
+          <DailySession
+            style={style}
+            lessons={lessons}
+            progress={progress}
+            onOpenLesson={props.onOpen}
+            onRoll={props.onGoRoll}
+          />
+          <ChallengePath
+            style={style}
+            lessons={lessons}
+            progress={progress}
+            pass={PASS_SCORE}
+            onOpen={props.onOpen}
+            onUpgrade={props.onUpgrade}
+          />
+        </div>
       ) : null}
     </div>
   );

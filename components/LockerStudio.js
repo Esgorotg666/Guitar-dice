@@ -3,9 +3,10 @@ import AvatarMark from './AvatarMark';
 import GuitarPreview from './GuitarPreview';
 import {
   SKINS, HAIR, HATS, SHIRTS, BODIES, GUARDS, HARDWARE, INLAYS, LAYOUTS,
-  isOpen, lockHint, nextUnlocks, clearCount, guitarTitle
+  isOpen, lockHint, nextUnlocks, clearCount, guitarTitle, hasTier
 } from '../lib/locker';
 import { LAYOUT_SKUS, formatUsd, cacheOwnedLayouts, ownsLayout } from '../lib/shopLayouts';
+import { fetchAppTier } from '../lib/resolveTier';
 
 function ChipRow(props) {
   return (
@@ -45,14 +46,10 @@ export default function LockerStudio(props) {
   const n = clearCount(progress);
 
   useEffect(function () {
-    fetch('/api/billing/status', { credentials: 'include' })
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (b) {
-        if (b && b.tier) setTier(b.tier);
-        const list = cacheOwnedLayouts(b && b.layouts ? b.layouts : []);
-        setOwned(list);
-      })
-      .catch(function () {});
+    fetchAppTier(props.tier).then(function (info) {
+      setTier(info.tier);
+      setOwned(cacheOwnedLayouts(info.layouts || []));
+    });
   }, [props.tier]);
 
   function patchAvatar(part) {
@@ -84,11 +81,19 @@ export default function LockerStudio(props) {
       .catch(function () { setBusy(''); setErr('Could not reach Stripe.'); });
   }
 
+  function included(sku) {
+    if (hasTier(tier, 'extreme')) return true;
+    if (hasTier(tier, 'premium') && (sku.id === 'blank' || sku.id === 'birds' || sku.id === 'split' || sku.id === 'pack-all' && false)) {
+      return sku.id !== 'shark' && sku.id !== 'glow' && sku.id !== 'pack-all';
+    }
+    return ownsLayout(sku.id) || owned.indexOf(sku.id) >= 0;
+  }
+
   return (
     <div className="card lockerCard">
       <h3>Player locker</h3>
       <p className="muted sm">
-        {n} challenge{n === 1 ? '' : 's'} cleared. Path cosmetics stay free. Board layouts are one-time buys — not part of Premium or Extreme.
+        {n} challenge{n === 1 ? '' : 's'} cleared. Extreme includes every board layout. Free accounts can still buy one layout at a time.
       </p>
       <div className="lockerStage">
         <AvatarMark locker={locker} size={72} />
@@ -112,7 +117,7 @@ export default function LockerStudio(props) {
       <ChipRow label="Inlays" kind="inlay" list={INLAYS} value={locker.guitar.inlay} progress={progress} tier={tier} onPick={function (id) { patchGuitar({ inlay: id }); }} />
 
       <h4 className="lockerH">Shop — fretboard layouts</h4>
-      <p className="muted sm">One payment per layout. Keeps working if you cancel a plan. Equip after checkout.</p>
+      <p className="muted sm">Extreme already owns these. Equip any layout. A la carte stays for free accounts.</p>
       <ChipRow
         label="Equipped layout"
         kind="layout"
@@ -123,7 +128,7 @@ export default function LockerStudio(props) {
         onPick={function (id) { patchGuitar({ layout: id, inlay: id === 'blocks' ? 'blocks' : locker.guitar.inlay }); }}
       />
       {LAYOUT_SKUS.map(function (sku) {
-        const mine = ownsLayout(sku.id) || owned.indexOf(sku.id) >= 0;
+        const mine = included(sku);
         return (
           <div key={sku.id} className="shopPack">
             <div className="rowBetween">
@@ -131,10 +136,10 @@ export default function LockerStudio(props) {
                 <strong>{sku.label}</strong>
                 <p className="muted sm">{sku.blurb}</p>
               </div>
-              <span className="tagAmber">{formatUsd(sku.cents)}</span>
+              <span className="tagAmber">{hasTier(tier, 'extreme') ? 'Included' : formatUsd(sku.cents)}</span>
             </div>
             {mine ? (
-              <p className="okText sm">Owned. Equip it above.</p>
+              <p className="okText sm">Unlocked on your plan. Equip it above.</p>
             ) : (
               <button className="btn primary wide" disabled={!!busy} onClick={function () { buySku(sku.id); }}>
                 {busy === sku.id ? 'Opening checkout...' : 'Buy ' + sku.label + ' — ' + formatUsd(sku.cents)}

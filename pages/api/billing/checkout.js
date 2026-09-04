@@ -1,4 +1,5 @@
 import { currentUser, PRICE_TO_TIER, secret, isLiveKey, stripe, findCustomer, siteUrl } from '../../../lib/stripeBilling';
+import { skuById, envPriceId, formatUsd } from '../../../lib/shopLayouts';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,15 +13,11 @@ export default async function handler(req, res) {
   if (!secret()) {
     return res.status(500).json({ message: 'Stripe is not configured on the server yet.' });
   }
+
+  const skuId = String((req.body && req.body.sku) || '').toLowerCase();
   const plan = String((req.body && req.body.plan) || '').toLowerCase();
-  const price = PRICE_TO_TIER[plan];
-  if (!price) {
-    return res.status(400).json({
-      message: plan === 'premium' || plan === 'extreme'
-        ? 'Set STRIPE_PRICE_' + plan.toUpperCase() + ' on Vercel to the Live price id.'
-        : 'Unknown plan.'
-    });
-  }
+  const sku = skuId ? skuById(skuId) : null;
+
   try {
     let customerId = null;
     const existing = await findCustomer(user);
@@ -33,6 +30,47 @@ export default async function handler(req, res) {
         'metadata[gd_user_id]': user.id || user.username
       });
       customerId = created.id;
+    }
+
+    if (sku) {
+      const priceId = envPriceId(sku.id);
+      const sessionBody = {
+        mode: 'payment',
+        customer: customerId,
+        client_reference_id: user.username,
+        success_url: siteUrl() + '/?billing=layout&sku=' + sku.id,
+        cancel_url: siteUrl() + '/?billing=cancel',
+        'line_items[0][quantity]': '1',
+        'metadata[gd_username]': user.username,
+        'metadata[gd_sku]': sku.id,
+        'payment_intent_data[metadata][gd_username]': user.username,
+        'payment_intent_data[metadata][gd_sku]': sku.id
+      };
+      if (priceId) {
+        sessionBody['line_items[0][price]'] = priceId;
+      } else {
+        sessionBody['line_items[0][price_data][currency]'] = 'usd';
+        sessionBody['line_items[0][price_data][unit_amount]'] = String(sku.cents);
+        sessionBody['line_items[0][price_data][product_data][name]'] = 'Guitar Dice — ' + sku.label;
+        sessionBody['line_items[0][price_data][product_data][description]'] = sku.blurb + ' One-time. Not a subscription.';
+      }
+      const session = await stripe('/checkout/sessions', 'POST', sessionBody);
+      return res.status(200).json({
+        url: session.url,
+        live: isLiveKey(secret()),
+        username: user.username,
+        sku: sku.id,
+        price: formatUsd(sku.cents)
+      });
+    }
+
+    const price = PRICE_TO_TIER[plan];
+    if (!price) {
+      return res.status(400).json({
+        message: plan === 'premium' || plan === 'extreme'
+          ? 'Set STRIPE_PRICE_' + plan.toUpperCase() + ' on Vercel to the Live price id.'
+          : 'Unknown plan or layout.'
+      });
     }
     const session = await stripe('/checkout/sessions', 'POST', {
       mode: 'subscription',

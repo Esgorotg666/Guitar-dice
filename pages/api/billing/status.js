@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       layouts: layouts,
       live: isLiveKey(secret()),
       unlimitedRolls: sub.tier !== 'free',
-      diceCount: sub.tier === 'extreme' ? 6 : sub.tier === 'premium' ? 4 : 2,
+      diceCount: sub.tier === 'extreme' ? 7 : sub.tier === 'premium' ? 4 : 2,
       loopPlayer: sub.tier !== 'free',
       exportSheets: sub.tier !== 'free'
     });

@@ -3,6 +3,7 @@ import '../styles/classroom.css';
 import '../styles/theme.css';
 import '../styles/genre.css';
 import '../styles/locker.css';
+import '../styles/diceTray.css';
 export default function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />;
 }

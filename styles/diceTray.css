@@ -1,0 +1,46 @@
+.diceTray { padding-bottom: 8px; }
+.diceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+@media (min-width: 520px) {
+  .diceGrid { grid-template-columns: repeat(4, 1fr); }
+}
+.dieFace {
+  border: 0;
+  border-radius: 16px;
+  min-height: 88px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,.18);
+  font-weight: 700;
+}
+.dieFace small { font-weight: 600; opacity: .92; font-size: .72rem; letter-spacing: .02em; }
+.diePips { display: grid; grid-template-columns: repeat(3, 6px); gap: 4px; height: 22px; align-content: center; }
+.diePips i { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .95; }
+.lessonLine { margin-top: 16px; }
+.lessonLineItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  background: #101820;
+  border: 1px solid #1e2a35;
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 8px;
+  color: inherit;
+}
+.lessonLineIcon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff; font-weight: 800;
+}
+.lessonLineItem strong { display: block; }
+.lessonLineItem p { margin: 4px 0 0; color: #8b97a3; font-size: .82rem; }

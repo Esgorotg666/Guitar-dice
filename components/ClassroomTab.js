@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import LessonPlayer from './LessonPlayer';
+import LessonAB from './LessonAB';
 import PlayAlong from './PlayAlong';
 import ChallengePath from './ChallengePath';
 import ChordDiagram from './ChordDiagram';
@@ -47,12 +48,13 @@ export default function ClassroomTab(props) {
           ) : null}
           <LessonPlayer notes={lesson.notes} bpm={lesson.bpm}
             legend={lessonFile.legend} legendOrder={lessonFile.legendOrder} />
+          <LessonAB notes={lesson.notes} bpm={lesson.bpm} />
           <PlayAlong notes={lesson.notes} bpm={lesson.bpm} onResult={function (res) {
             const next = recordAttempt(progress, lesson.id, style, res.score);
             setProgress(next);
           }} />
           <div className="howto">
-            <b>Pass the node:</b> Hear it with A-B loop, then Play along. Tap mode scores timing. Mic mode scores pitch plus time. {PASS_SCORE}% unlocks the next node.
+            <b>Pass the node:</b> loop the hard bar at 70%, then Play along. Tap timing or mic. {PASS_SCORE}% unlocks the next node.
           </div>
           <h3 style={{ marginTop:20 }}>How to play it</h3>
           <ol className="stepList">{(lesson.steps || []).map(function (s, i) { return <li key={i}>{s}</li>; })}</ol>

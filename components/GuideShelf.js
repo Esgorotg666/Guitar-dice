@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { THEORY_GUIDES } from '../lib/theoryGuides';
 import { TECH_GUIDES } from '../lib/techGuides';
 import { guideLockedReason } from '../lib/entitlements';
+import { fetchAppTier } from '../lib/resolveTier';
 
 function groupGuides(list) {
   const order = [];
@@ -22,13 +23,7 @@ export default function GuideShelf(props) {
   const open = list.filter(function (g) { return g.id === openId; })[0];
 
   useEffect(function () {
-    if (props.tier && props.tier !== 'free') { setTier(props.tier); return; }
-    fetch('/api/billing/status', { credentials: 'include' })
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (body) {
-        if (body && (body.tier === 'premium' || body.tier === 'extreme')) setTier(body.tier);
-      })
-      .catch(function () {});
+    fetchAppTier(props.tier).then(function (info) { setTier(info.tier); });
   }, [props.tier]);
 
   if (open) {
@@ -70,8 +65,8 @@ export default function GuideShelf(props) {
         <h3>{kind === 'tech' ? 'Guitar tech' : 'Music theory'}</h3>
         <p className="muted sm">
           {kind === 'tech'
-            ? 'Setup, tuning stability, Floyd Rose, pickup height, pots, toggles, and EMG. Entry pages are free. Wiring and Floyd/EMG are on paid plans.'
-            : 'Notes, intervals, scales, chords, the circle, modes, and ii-V-I. Read a page, then use the matching classroom unit.'}
+            ? 'Setup, tuning stability, Floyd Rose, pickup height, pots, toggles, and EMG. Extreme unlocks every page.'
+            : 'Notes through secondary dominants and tritone subs. Extreme unlocks every page.'}
         </p>
       </div>
       {groups.map(function (g) {

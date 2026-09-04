@@ -1,9 +1,18 @@
+import { useEffect, useState } from 'react';
 import AvatarMark from './AvatarMark';
 import GuitarPreview from './GuitarPreview';
 import {
   SKINS, HAIR, HATS, SHIRTS, BODIES, GUARDS, HARDWARE, INLAYS, LAYOUTS, SHOP_PACKS,
   isOpen, lockHint, nextUnlocks, clearCount, guitarTitle, hasTier
 } from '../lib/locker';
+
+function goPlans(onUpgrade) {
+  if (onUpgrade) { onUpgrade(); return; }
+  var tabs = document.querySelectorAll('nav.tabs button');
+  for (var i = 0; i < tabs.length; i++) {
+    if (String(tabs[i].textContent || '').trim() === 'Plans') { tabs[i].click(); return; }
+  }
+}
 
 function ChipRow(props) {
   return (
@@ -20,7 +29,7 @@ function ChipRow(props) {
               title={!open ? lockHint(opt, props.progress, props.tier) : opt.label}
               onClick={function () {
                 if (!open) {
-                  if (opt.shop && props.onUpgrade) props.onUpgrade();
+                  if (opt.shop) goPlans(props.onUpgrade);
                   return;
                 }
                 props.onPick(opt.id);
@@ -38,9 +47,17 @@ function ChipRow(props) {
 export default function LockerStudio(props) {
   const locker = props.locker || {};
   const progress = props.progress || { clears: {}, badges: {} };
-  const tier = props.tier || 'free';
+  const [tier, setTier] = useState(props.tier || 'free');
   const coming = nextUnlocks(progress);
   const n = clearCount(progress);
+
+  useEffect(function () {
+    if (props.tier) { setTier(props.tier); return; }
+    fetch('/api/billing/status', { credentials: 'include' })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (b) { if (b && b.tier) setTier(b.tier); })
+      .catch(function () {});
+  }, [props.tier]);
 
   function patchAvatar(part) {
     props.onChange({ avatar: Object.assign({}, locker.avatar, part), guitar: locker.guitar });
@@ -102,7 +119,7 @@ export default function LockerStudio(props) {
             {owned ? (
               <p className="okText sm">Unlocked on your plan. Equip a layout above.</p>
             ) : (
-              <button className="btn primary wide" onClick={function () { if (props.onUpgrade) props.onUpgrade(); }}>
+              <button className="btn primary wide" onClick={function () { goPlans(props.onUpgrade); }}>
                 Buy {pack.tier === 'extreme' ? 'Extreme' : 'Premium'}
               </button>
             )}

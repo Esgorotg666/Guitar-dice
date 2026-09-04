@@ -1,4 +1,5 @@
-import { FACES, FACE_ORDER, facesForTier, nextFace, matchLessons } from '../lib/diceFaces';
+import { useEffect, useState } from 'react';
+import { FACES, facesForTier, nextFace, matchLessons } from '../lib/diceFaces';
 
 function Pips(props) {
   const n = props.n || 1;
@@ -14,9 +15,18 @@ export default function DiceConfig(props) {
   const count = props.count || 2;
   const slots = props.slots || [];
   const allowed = facesForTier(props.tier || (props.allowBridge ? 'extreme' : 'free'), props.allowBridge);
+  const [ownLessons, setOwnLessons] = useState([]);
+  const lessons = (props.lessons && props.lessons.length) ? props.lessons : ownLessons;
   const nums = [];
   for (let i = 2; i <= max; i++) nums.push(i);
-  const line = matchLessons(props.lessons || [], slots, props.genre);
+  const line = matchLessons(lessons, slots, props.genre);
+
+  useEffect(function () {
+    if (props.lessons && props.lessons.length) return;
+    fetch('/data/lessons-v2.json').then(function (r) { return r.json(); }).then(function (d) {
+      setOwnLessons((d && d.lessons) || []);
+    }).catch(function () {});
+  }, [props.lessons]);
 
   return (
     <div className="card diceTray">
@@ -50,17 +60,17 @@ export default function DiceConfig(props) {
         })}
       </div>
       <p className="muted sm" style={{ marginTop: 10 }}>
-        Tap a die to change what it rolls. Chord stays the backbone. Scale, lick, arpeggio, rhythm, strum, and solo load the practice around those chords.
+        Tap a die to change what it rolls — chord, scale, arpeggio, lick, rhythm, strum, solo. The lesson line under the tray follows those faces.
       </p>
       {line.length ? (
         <div className="lessonLine">
           <span className="optLabel">Lesson line</span>
           {line.map(function (l) {
-            const kind = (slots.filter(function (s) { return s !== 'chord'; })[0]) || 'lick';
+            const kind = slots.filter(function (s) { return s !== 'chord'; })[0] || 'lick';
             const face = FACES[kind] || FACES.lick;
             return (
               <button key={l.id} className="lessonLineItem" onClick={function () { if (props.onOpenLesson) props.onOpenLesson(l.id); }}>
-                <span className="lessonLineIcon" style={{ background: face.color }}>{(l.bpm || 80)}</span>
+                <span className="lessonLineIcon" style={{ background: face.color }}>{l.bpm || 80}</span>
                 <span>
                   <strong>{l.title}</strong>
                   <p>{l.summary}</p>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BADGES, GOLD_SCORE, pathFor } from '../lib/path';
 import { bestScore, earnedBadges, isCleared, isUnlocked, unlockedIndex } from '../lib/pathProgress';
 import { LEVELS, filterLessons, groupByUnit, planFor, unitFor } from '../lib/lessonCatalog';
+import { nextUnlocks, clearCount } from '../lib/locker';
 
 function UnitPlanCard(props) {
   const plan = planFor(props.unit);
@@ -47,6 +48,7 @@ export default function ChallengePath(props) {
   });
   const visibleExtra = filterLessons(extra, level);
   const extraGroups = groupByUnit(visibleExtra);
+  const coming = nextUnlocks(progress);
 
   const pathBlocks = [];
   steps.forEach(function (s) {
@@ -98,7 +100,7 @@ export default function ChallengePath(props) {
         <h3>Challenge path</h3>
         <p className="muted sm">
           Units run in order. Each header is a 12-minute session. Clear a node at {props.pass || 80}% to unlock the next one.
-          Paid gates still apply.
+          Paid gates still apply. Cosmetics unlock from clears — {clearCount(progress)} so far.
         </p>
         <div className="badgeRow">
           {BADGES.map(function (b) {
@@ -111,6 +113,14 @@ export default function ChallengePath(props) {
           })}
         </div>
         {badges.length ? <p className="muted sm">{badges.length} of {BADGES.length} badges earned on this device.</p> : null}
+        {coming.length ? (
+          <div className="nextUnlocks">
+            <span className="optLabel">Locker next</span>
+            {coming.map(function (u) {
+              return <p key={u.id} className="muted sm">{u.label} — {u.hint}</p>;
+            })}
+          </div>
+        ) : null}
       </div>
 
       {pathBlocks.map(function (block) {

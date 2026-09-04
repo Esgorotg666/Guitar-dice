@@ -1,6 +1,7 @@
 import { secret, stripe, tierForPrice } from '../../../lib/stripeBilling';
 import { alreadyStored, persistEventId, customerIdFrom, seenInMemory } from '../../../lib/webhookIdempotency';
 import { verifyStripeSignature } from '../../../lib/stripeSignature';
+import { mergeOwned } from '../../../lib/shopLayouts';
 
 export const config = { api: { bodyParser: false } };
 
@@ -40,11 +41,18 @@ async function stamp(event) {
   const customerId = customerIdFrom(event);
   if (event.type === 'checkout.session.completed') {
     const username = (obj.metadata && obj.metadata.gd_username) || obj.client_reference_id;
+    const sku = obj.metadata && obj.metadata.gd_sku;
+    const extra = {
+      gd_username: username || '',
+      gd_plan: (obj.metadata && obj.metadata.gd_plan) || ''
+    };
+    if (sku && customerId) {
+      const customer = await stripe('/customers/' + customerId, 'GET');
+      extra.gd_layouts = mergeOwned(customer.metadata && customer.metadata.gd_layouts, sku);
+      extra.gd_last_sku = sku;
+    }
     if (customerId && username) {
-      await persistEventId(event.id, customerId, {
-        gd_username: username,
-        gd_plan: (obj.metadata && obj.metadata.gd_plan) || ''
-      });
+      await persistEventId(event.id, customerId, extra);
     }
     return;
   }

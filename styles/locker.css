@@ -1,0 +1,9 @@
+.idChip { background:none; border:none; padding:0; line-height:0; flex-shrink:0; }
+.idChip:active { transform:scale(.96); }
+.avatarMark { display:block; }
+.lockerStage { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:12px 0 8px; }
+.lockerStage div { display:flex; flex-direction:column; min-width:90px; }
+.lockerStage small { color:#8b97a3; font-size:.78rem; margin-top:2px; }
+.lockerH { margin:16px 0 4px; font-size:.95rem; }
+.lockedChip { opacity:.45; text-decoration:line-through; }
+.nextUnlocks { margin-top:14px; padding-top:10px; border-top:1px solid #1e2a35; }

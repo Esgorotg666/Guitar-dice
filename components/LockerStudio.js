@@ -2,17 +2,10 @@ import { useEffect, useState } from 'react';
 import AvatarMark from './AvatarMark';
 import GuitarPreview from './GuitarPreview';
 import {
-  SKINS, HAIR, HATS, SHIRTS, BODIES, GUARDS, HARDWARE, INLAYS, LAYOUTS, SHOP_PACKS,
-  isOpen, lockHint, nextUnlocks, clearCount, guitarTitle, hasTier
+  SKINS, HAIR, HATS, SHIRTS, BODIES, GUARDS, HARDWARE, INLAYS, LAYOUTS,
+  isOpen, lockHint, nextUnlocks, clearCount, guitarTitle
 } from '../lib/locker';
-
-function goPlans(onUpgrade) {
-  if (onUpgrade) { onUpgrade(); return; }
-  var tabs = document.querySelectorAll('nav.tabs button');
-  for (var i = 0; i < tabs.length; i++) {
-    if (String(tabs[i].textContent || '').trim() === 'Plans') { tabs[i].click(); return; }
-  }
-}
+import { LAYOUT_SKUS, formatUsd, cacheOwnedLayouts, ownsLayout } from '../lib/shopLayouts';
 
 function ChipRow(props) {
   return (
@@ -28,14 +21,11 @@ function ChipRow(props) {
               className={'chipBtn' + (on ? ' on' : '') + (!open ? ' lockedChip' : '')}
               title={!open ? lockHint(opt, props.progress, props.tier) : opt.label}
               onClick={function () {
-                if (!open) {
-                  if (opt.shop) goPlans(props.onUpgrade);
-                  return;
-                }
+                if (!open) return;
                 props.onPick(opt.id);
               }}
             >
-              {open ? opt.label : (opt.shop ? opt.price : 'Locked')}
+              {open ? opt.label : (opt.price || 'Locked')}
             </button>
           );
         })}
@@ -48,14 +38,20 @@ export default function LockerStudio(props) {
   const locker = props.locker || {};
   const progress = props.progress || { clears: {}, badges: {} };
   const [tier, setTier] = useState(props.tier || 'free');
+  const [owned, setOwned] = useState([]);
+  const [busy, setBusy] = useState('');
+  const [err, setErr] = useState('');
   const coming = nextUnlocks(progress);
   const n = clearCount(progress);
 
   useEffect(function () {
-    if (props.tier) { setTier(props.tier); return; }
     fetch('/api/billing/status', { credentials: 'include' })
       .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (b) { if (b && b.tier) setTier(b.tier); })
+      .then(function (b) {
+        if (b && b.tier) setTier(b.tier);
+        const list = cacheOwnedLayouts(b && b.layouts ? b.layouts : []);
+        setOwned(list);
+      })
       .catch(function () {});
   }, [props.tier]);
 
@@ -66,11 +62,33 @@ export default function LockerStudio(props) {
     props.onChange({ avatar: locker.avatar, guitar: Object.assign({}, locker.guitar, part) });
   }
 
+  function buySku(id) {
+    setBusy(id); setErr('');
+    fetch('/api/billing/checkout', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sku: id })
+    })
+      .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, b: b }; }); })
+      .then(function (res) {
+        if (res.ok && res.b.url) { window.location.href = res.b.url; return; }
+        setBusy('');
+        if (res.b.needsAccount) {
+          setErr('Sign in first so this layout stays on your account.');
+          if (props.onNeedAccount) props.onNeedAccount();
+          return;
+        }
+        setErr(res.b.message || 'Could not start checkout.');
+      })
+      .catch(function () { setBusy(''); setErr('Could not reach Stripe.'); });
+  }
+
   return (
     <div className="card lockerCard">
       <h3>Player locker</h3>
       <p className="muted sm">
-        {n} challenge{n === 1 ? '' : 's'} cleared. Path cosmetics stay free. Board layouts are the shop.
+        {n} challenge{n === 1 ? '' : 's'} cleared. Path cosmetics stay free. Board layouts are one-time buys — not part of Premium or Extreme.
       </p>
       <div className="lockerStage">
         <AvatarMark locker={locker} size={72} />
@@ -94,7 +112,7 @@ export default function LockerStudio(props) {
       <ChipRow label="Inlays" kind="inlay" list={INLAYS} value={locker.guitar.inlay} progress={progress} tier={tier} onPick={function (id) { patchGuitar({ inlay: id }); }} />
 
       <h4 className="lockerH">Shop — fretboard layouts</h4>
-      <p className="muted sm">These change the markers on the live neck, not just the locker preview.</p>
+      <p className="muted sm">One payment per layout. Keeps working if you cancel a plan. Equip after checkout.</p>
       <ChipRow
         label="Equipped layout"
         kind="layout"
@@ -102,30 +120,30 @@ export default function LockerStudio(props) {
         value={locker.guitar.layout || locker.guitar.inlay || 'dots'}
         progress={progress}
         tier={tier}
-        onUpgrade={props.onUpgrade}
         onPick={function (id) { patchGuitar({ layout: id, inlay: id === 'blocks' ? 'blocks' : locker.guitar.inlay }); }}
       />
-      {SHOP_PACKS.map(function (pack) {
-        const owned = hasTier(tier, pack.tier);
+      {LAYOUT_SKUS.map(function (sku) {
+        const mine = ownsLayout(sku.id) || owned.indexOf(sku.id) >= 0;
         return (
-          <div key={pack.id} className="shopPack">
+          <div key={sku.id} className="shopPack">
             <div className="rowBetween">
               <div>
-                <strong>{pack.title}</strong>
-                <p className="muted sm">{pack.blurb}</p>
+                <strong>{sku.label}</strong>
+                <p className="muted sm">{sku.blurb}</p>
               </div>
-              <span className="tagAmber">{pack.price}</span>
+              <span className="tagAmber">{formatUsd(sku.cents)}</span>
             </div>
-            {owned ? (
-              <p className="okText sm">Unlocked on your plan. Equip a layout above.</p>
+            {mine ? (
+              <p className="okText sm">Owned. Equip it above.</p>
             ) : (
-              <button className="btn primary wide" onClick={function () { goPlans(props.onUpgrade); }}>
-                Buy {pack.tier === 'extreme' ? 'Extreme' : 'Premium'}
+              <button className="btn primary wide" disabled={!!busy} onClick={function () { buySku(sku.id); }}>
+                {busy === sku.id ? 'Opening checkout...' : 'Buy ' + sku.label + ' — ' + formatUsd(sku.cents)}
               </button>
             )}
           </div>
         );
       })}
+      {err ? <p className="warn">{err}</p> : null}
 
       {coming.length ? (
         <div className="nextUnlocks">

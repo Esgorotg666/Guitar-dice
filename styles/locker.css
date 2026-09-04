@@ -5,5 +5,6 @@
 .lockerStage div { display:flex; flex-direction:column; min-width:90px; }
 .lockerStage small { color:#8b97a3; font-size:.78rem; margin-top:2px; }
 .lockerH { margin:16px 0 4px; font-size:.95rem; }
-.lockedChip { opacity:.45; text-decoration:line-through; }
+.lockedChip { opacity:.45; }
 .nextUnlocks { margin-top:14px; padding-top:10px; border-top:1px solid #1e2a35; }
+.shopPack { margin-top:12px; padding-top:10px; border-top:1px solid #1e2a35; }

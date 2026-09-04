@@ -1,6 +1,20 @@
 import { OPEN_PC, pitchClass, NOTE_NAMES, SINGLE_INLAYS, DOUBLE_INLAYS } from '../lib/theory';
 import { bodyLook, hardwareLook } from '../lib/locker';
 
+function marker(kind, key, cx, cy, fill, glow) {
+  if (kind === 'blank') return null;
+  if (kind === 'birds') {
+    return <path key={key} d={'M ' + (cx-7) + ' ' + cy + ' Q ' + cx + ' ' + (cy-10) + ' ' + (cx+7) + ' ' + cy + ' Q ' + cx + ' ' + (cy+6) + ' ' + (cx-7) + ' ' + cy} fill={fill} opacity="0.7" />;
+  }
+  if (kind === 'shark') {
+    return <polygon key={key} points={(cx-7)+','+(cy+6)+' '+(cx)+','+(cy-8)+' '+(cx+7)+','+(cy+6)} fill={fill} opacity="0.7" />;
+  }
+  if (kind === 'split' || kind === 'blocks') {
+    return <rect key={key} x={cx-6} y={cy-5} width={12} height={10} rx={1} fill={fill} opacity="0.55" />;
+  }
+  return <circle key={key} cx={cx} cy={cy} r={glow ? 8 : 7} fill={fill} opacity={glow ? 0.85 : 0.45} />;
+}
+
 export default function Fretboard(props) {
   const mode = props.mode;
   if (!mode) return null;
@@ -13,13 +27,14 @@ export default function Fretboard(props) {
   const gw = W - padL - 20, gh = H - padT - 44;
   const dx = gw / frets, dy = gh / 5;
   const STRINGS = ['e','B','G','D','A','E'];
-  const guitar = (props.guitar) || { body: 'natural', hardware: 'chrome', inlay: 'dots' };
+  const guitar = props.guitar || { body: 'natural', hardware: 'chrome', inlay: 'dots', layout: 'dots' };
   const wood = bodyLook(guitar.body);
   const hw = hardwareLook(guitar.hardware);
   const board = wood.wood || '#0d1319';
   const edge = wood.edge || '#39485a';
-  const inlayFill = hw.fill || '#243240';
-  const useBlocks = guitar.inlay === 'blocks';
+  const inlayFill = guitar.layout === 'glow' ? '#9be7ff' : (hw.fill || '#243240');
+  const kind = guitar.layout || guitar.inlay || 'dots';
+  const glow = kind === 'glow';
 
   function colorFor(pc) {
     for (let i = 0; i < overlays.length; i++) if (overlays[i].pcs[pc]) return overlays[i].color;
@@ -31,24 +46,13 @@ export default function Fretboard(props) {
       <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role="img" aria-label={props.root + ' ' + mode.name}>
         <rect x={padL} y={padT} width={gw} height={gh} fill={board} rx={4} />
         {SINGLE_INLAYS.filter(function (m) { return m <= frets; }).map(function (m) {
-          if (useBlocks) {
-            return <rect key={'in'+m} x={padL+dx*(m-0.5)-6} y={padT+gh/2-5} width={12} height={10} rx={1} fill={inlayFill} opacity="0.55" />;
-          }
-          return <circle key={'in'+m} cx={padL+dx*(m-0.5)} cy={padT+gh/2} r={7} fill={inlayFill} opacity="0.45" />;
+          return marker(kind, 'in'+m, padL+dx*(m-0.5), padT+gh/2, inlayFill, glow);
         })}
         {DOUBLE_INLAYS.filter(function (m) { return m <= frets; }).map(function (m) {
-          if (useBlocks) {
-            return (
-              <g key={'dbl'+m}>
-                <rect x={padL+dx*(m-0.5)-6} y={padT+gh*0.27-5} width={12} height={10} rx={1} fill={inlayFill} opacity="0.55" />
-                <rect x={padL+dx*(m-0.5)-6} y={padT+gh*0.73-5} width={12} height={10} rx={1} fill={inlayFill} opacity="0.55" />
-              </g>
-            );
-          }
           return (
             <g key={'dbl'+m}>
-              <circle cx={padL+dx*(m-0.5)} cy={padT+gh*0.27} r={7} fill={inlayFill} opacity="0.45" />
-              <circle cx={padL+dx*(m-0.5)} cy={padT+gh*0.73} r={7} fill={inlayFill} opacity="0.45" />
+              {marker(kind, 'd1'+m, padL+dx*(m-0.5), padT+gh*0.27, inlayFill, glow)}
+              {marker(kind, 'd2'+m, padL+dx*(m-0.5), padT+gh*0.73, inlayFill, glow)}
             </g>
           );
         })}

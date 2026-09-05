@@ -6,6 +6,7 @@ import ChallengePath from './ChallengePath';
 import ChordDiagram from './ChordDiagram';
 import GuideShelf from './GuideShelf';
 import DailySession from './DailySession';
+import LessonPictures from './LessonPictures';
 import { chordColor, voicingLabel } from '../lib/theory';
 import { strumChord } from '../lib/audio';
 import { PASS_SCORE } from '../lib/path';
@@ -40,6 +41,7 @@ export default function ClassroomTab(props) {
           </div>
           <p className="lessonKey">Key: {lesson.key} - written at {lesson.bpm} BPM{lesson.genre && lesson.genre !== 'any' ? ' - ' + lesson.genre : ''}</p>
           <p className="lessonSummary">{lesson.summary}</p>
+          <LessonPictures lesson={lesson} />
           {lesson.goals && lesson.goals.length ? (
             <div className="lessonGoals">
               <h3>What you will get from this</h3>

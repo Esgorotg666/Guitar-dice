@@ -42,7 +42,7 @@ export default function PromoCode(props) {
     <div className="card">
       <h3>Have a promo code?</h3>
       <p className="muted sm">
-        Friends and launch testers can unlock Extreme for 7 days. One redeem per account. Sign in first.
+        If you were given a code, sign in and enter it here. Codes are private and limited.
       </p>
       {props.promoUntil ? (
         <p className="okText sm">Trial active until {new Date(props.promoUntil).toLocaleDateString()}.</p>
@@ -53,14 +53,14 @@ export default function PromoCode(props) {
         value={code}
         autoCapitalize="characters"
         autoCorrect="off"
-        placeholder="DICEWEEK"
+        placeholder="Enter code"
         onChange={function (e) { setCode(e.target.value.toUpperCase()); }}
         onKeyDown={function (e) { if (e.key === 'Enter') redeem(); }}
       />
       {err ? <p className="warn">{err}</p> : null}
       {ok ? <p className="okText sm">{ok}</p> : null}
       <button className="btn primary wide" disabled={busy} onClick={redeem}>
-        {busy ? 'Checking...' : 'Unlock 7 days of Extreme'}
+        {busy ? 'Checking...' : 'Redeem code'}
       </button>
     </div>
   );

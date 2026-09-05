@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FACES, FACE_ORDER, facesForTier, matchLessons } from '../lib/diceFaces';
+import { FACES, FACE_ORDER, facesForTier, nextFace, matchLessons } from '../lib/diceFaces';
 
 const STORE = 'gd-dice-slots-v2';
 
@@ -28,16 +28,15 @@ function Pips(props) {
 
 export default function DiceConfig(props) {
   const max = props.max || 2;
-  const count = props.count || 2;
+  const count = Math.max(2, props.count || 2);
   const allowed = facesForTier(props.tier || (props.allowBridge ? 'extreme' : 'free'), true);
   const [ownLessons, setOwnLessons] = useState([]);
-  const [pick, setPick] = useState(-1);
-  const [slots, setSlots] = useState(function () {
-    return loadSaved(props.slots || []);
-  });
+  const [active, setActive] = useState(0);
+  const [slots, setSlots] = useState(function () { return loadSaved(props.slots || []); });
   const lessons = (props.lessons && props.lessons.length) ? props.lessons : ownLessons;
   const nums = [];
   for (let i = 2; i <= max; i++) nums.push(i);
+
   const shown = slots.slice(0, count);
   while (shown.length < count) shown.push('chord');
   const line = matchLessons(lessons, shown, props.genre);
@@ -49,20 +48,28 @@ export default function DiceConfig(props) {
     }).catch(function () {});
   }, [props.lessons]);
 
-  useEffect(function () {
-    saveSlots(shown);
-    if (typeof props.onSlots === 'function') props.onSlots(shown);
-    shown.forEach(function (s, i) {
-      if (props.onSlot && (!props.slots || props.slots[i] !== s)) props.onSlot(i, s);
-    });
-  }, [shown.join('|')]);
+  function commit(next) {
+    setSlots(next);
+    saveSlots(next);
+    if (props.onSlot) {
+      next.forEach(function (s, i) {
+        if (!props.slots || props.slots[i] !== s) props.onSlot(i, s);
+      });
+    }
+  }
 
-  function setFace(i, id) {
+  function cycle(i) {
+    const next = shown.slice();
+    next[i] = nextFace(next[i], allowed);
+    setActive(i);
+    commit(next);
+  }
+
+  function setFace(id) {
+    const i = Math.max(0, Math.min(active, shown.length - 1));
     const next = shown.slice();
     next[i] = id;
-    setSlots(next);
-    setPick(-1);
-    if (props.onSlot) props.onSlot(i, id);
+    commit(next);
   }
 
   return (
@@ -74,7 +81,7 @@ export default function DiceConfig(props) {
       <div className="optRow">
         {nums.map(function (n) {
           return (
-            <button key={n} className={'chipBtn' + (count === n ? ' on' : '')} onClick={function () { props.onCount(n); }}>
+            <button key={n} type="button" className={'chipBtn' + (count === n ? ' on' : '')} onClick={function () { props.onCount(n); }}>
               {n}
             </button>
           );
@@ -85,10 +92,11 @@ export default function DiceConfig(props) {
           const face = FACES[s] || FACES.chord;
           return (
             <button
-              key={i}
-              className={'dieFace' + (pick === i ? ' on' : '')}
+              key={'die-' + i}
+              type="button"
+              className={'dieFace' + (active === i ? ' on' : '')}
               style={{ background: face.color }}
-              onClick={function () { setPick(pick === i ? -1 : i); }}
+              onClick={function () { cycle(i); }}
             >
               <Pips n={face.pips} />
               <small>{face.label}</small>
@@ -96,27 +104,24 @@ export default function DiceConfig(props) {
           );
         })}
       </div>
-      {pick >= 0 ? (
-        <div className="optRow" style={{ marginTop: 10 }}>
-          {FACE_ORDER.filter(function (id) { return allowed.indexOf(id) >= 0; }).map(function (id) {
-            const face = FACES[id];
-            return (
-              <button
-                key={id}
-                className={'chipBtn' + (shown[pick] === id ? ' on' : '')}
-                style={{ borderColor: face.color }}
-                onClick={function () { setFace(pick, id); }}
-              >
-                {face.label}
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="muted sm" style={{ marginTop: 10 }}>
-          Tap a die, then pick Chord, Scale, Arpeggio, Lick, Rhythm, Strum, or Solo. It stays on that face.
-        </p>
-      )}
+      <p className="muted sm" style={{ marginTop: 10 }}>Tap a die to cycle it. Or tap a type below to set the highlighted die.</p>
+      <div className="optRow">
+        {FACE_ORDER.filter(function (id) { return allowed.indexOf(id) >= 0; }).map(function (id) {
+          const face = FACES[id];
+          const on = shown[active] === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              className={'chipBtn' + (on ? ' on' : '')}
+              style={{ borderColor: face.color }}
+              onClick={function () { setActive(active); setFace(id); }}
+            >
+              {face.label}
+            </button>
+          );
+        })}
+      </div>
       {line.length ? (
         <div className="lessonLine">
           <span className="optLabel">Lesson line</span>
@@ -124,7 +129,7 @@ export default function DiceConfig(props) {
             const kind = shown.filter(function (s) { return s !== 'chord'; })[0] || 'lick';
             const face = FACES[kind] || FACES.lick;
             return (
-              <button key={l.id} className="lessonLineItem" onClick={function () { if (props.onOpenLesson) props.onOpenLesson(l.id); }}>
+              <button key={l.id} type="button" className="lessonLineItem" onClick={function () { if (props.onOpenLesson) props.onOpenLesson(l.id); }}>
                 <span className="lessonLineIcon" style={{ background: face.color }}>{l.bpm || 80}</span>
                 <span>
                   <strong>{l.title}</strong>

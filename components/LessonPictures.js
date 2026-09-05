@@ -27,10 +27,17 @@ function FingerDot(props) {
   const y = 30 + props.string * 18;
   return (
     <g>
-      <circle cx={x} cy={y} r="10" fill="#35c46b" stroke="#fff" strokeWidth="2" />
+      <circle cx={x} cy={y} r="10" fill={props.barre ? '#e08a3c' : '#35c46b'} stroke="#fff" strokeWidth="2" />
       <text x={x} y={y + 4} textAnchor="middle" fontSize="11" fontWeight="800" fill="#04160c">{props.n}</text>
     </g>
   );
+}
+
+function BarreBar(props) {
+  const x = 70 + (props.fret - 0.5) * 52;
+  const y1 = 30 + (props.from || 0) * 18;
+  const y2 = 30 + (props.to || 5) * 18;
+  return <rect x={x - 8} y={y1 - 8} width="16" height={y2 - y1 + 16} rx="8" fill="#e08a3c" opacity="0.95" />;
 }
 
 function HoldPic() {
@@ -67,9 +74,7 @@ const PICS = {
   strings: {
     title: 'Thickest string is low E',
     caption: 'E A D G B e — fat string is 6, thin string is 1.',
-    node: function () {
-      return <Neck label="String names" highlight={[0, 5]} />;
-    }
+    node: function () { return <Neck label="String names" highlight={[0, 5]} />; }
   },
   tune: {
     title: 'Get the letter in the middle',
@@ -119,6 +124,73 @@ const PICS = {
         </div>
       );
     }
+  },
+  barreIndex: {
+    title: 'Index across fret 1',
+    caption: 'Orange bar is the index. No other fingers yet.',
+    node: function () {
+      return (
+        <Neck label="Index barre" highlight={[0, 1, 2, 3, 4, 5]}>
+          <BarreBar fret={1} from={0} to={5} />
+        </Neck>
+      );
+    }
+  },
+  barreMini: {
+    title: 'Mini F — three strings',
+    caption: 'Index on B and high E fret 1. Middle on G fret 2.',
+    node: function () {
+      return (
+        <Neck label="Mini F">
+          <BarreBar fret={1} from={4} to={5} />
+          <FingerDot string={3} fret={2} n="2" />
+        </Neck>
+      );
+    }
+  },
+  barreF: {
+    title: 'Full F — E shape at fret 1',
+    caption: 'Barre 1, middle G2, ring A3, pinky D3.',
+    node: function () {
+      return (
+        <Neck label="F barre">
+          <BarreBar fret={1} from={0} to={5} />
+          <FingerDot string={1} fret={3} n="3" />
+          <FingerDot string={2} fret={3} n="4" />
+          <FingerDot string={3} fret={2} n="2" />
+        </Neck>
+      );
+    }
+  },
+  barreBm: {
+    title: 'Bm — Am shape at fret 2',
+    caption: 'Skip low E. Index bars from A across fret 2.',
+    node: function () {
+      return (
+        <Neck label="Bm">
+          <BarreBar fret={2} from={1} to={5} />
+          <FingerDot string={2} fret={4} n="3" />
+          <FingerDot string={3} fret={4} n="4" />
+          <FingerDot string={4} fret={3} n="2" />
+        </Neck>
+      );
+    }
+  },
+  barreMove: {
+    title: 'Same grip: F then G',
+    caption: 'Fret 1 = F. Slide to fret 3 = G. Low E names the chord.',
+    node: function () {
+      return (
+        <div className="picPair">
+          <Neck label="F">
+            <BarreBar fret={1} from={0} to={5} />
+          </Neck>
+          <Neck label="G barre">
+            <BarreBar fret={3} from={0} to={5} />
+          </Neck>
+        </div>
+      );
+    }
   }
 };
 
@@ -130,13 +202,11 @@ function kindFromLesson(lesson) {
   if (id.indexOf('day1-em') === 0) return 'em';
   if (id.indexOf('day1-g') === 0) return 'g';
   if (id.indexOf('day1-switch') === 0) return 'switch';
-  const title = String((lesson && lesson.title) || '').toLowerCase();
-  if (title.indexOf('hold the guitar') >= 0) return 'hold';
-  if (title.indexOf('name the six') >= 0) return 'strings';
-  if (title.indexOf('tune') >= 0 && lesson.level === 'entry') return 'tune';
-  if ((lesson.chords || []).length === 1 && lesson.chords[0] === 'Em') return 'em';
-  if ((lesson.chords || []).length === 1 && lesson.chords[0] === 'G') return 'g';
-  if ((lesson.chords || []).join() === 'Em,G') return 'switch';
+  if (id.indexOf('barre-index') === 0) return 'barreIndex';
+  if (id.indexOf('barre-mini') === 0) return 'barreMini';
+  if (id.indexOf('barre-f') === 0) return 'barreF';
+  if (id.indexOf('barre-bm') === 0) return 'barreBm';
+  if (id.indexOf('barre-move') === 0) return 'barreMove';
   return null;
 }
 

@@ -1,4 +1,5 @@
 import { noteAt } from '../lib/theory';
+import { fingersFor } from '../lib/chordFingers';
 const STRING_LABELS = ['E','A','D','G','B','e'];
 
 export default function ChordDiagram(props) {
@@ -6,6 +7,8 @@ export default function ChordDiagram(props) {
   if (!chord) return null;
   const accent = props.accent || { dot:'#3b9dff', text:'#04121f' };
   const positions = chord.positions || [];
+  const fingers = fingersFor(chord);
+  const showFingers = props.fingers !== false;
   const baseFret = chord.fret || 0;
   const fretted = positions.filter(function (p) { return typeof p === 'number' && p > 0; });
   const minFret = fretted.length ? Math.min.apply(null, fretted) : 1;
@@ -48,10 +51,12 @@ export default function ChordDiagram(props) {
         const rel = p - start + 1;
         if (rel < 1 || rel > FRETS) return null;
         const cy = padTop + dy*(rel-0.5);
+        const finger = fingers && fingers[i];
+        const label = (showFingers && finger) ? String(finger) : (noteAt(i, p) || '');
         return (
           <g key={'d'+i}>
             <circle cx={x} cy={cy} r={9} fill={accent.dot} />
-            <text x={x} y={cy+3.6} fontSize={9} fill={accent.text} textAnchor="middle" fontWeight={700}>{noteAt(i, p)}</text>
+            <text x={x} y={cy+3.6} fontSize={10} fill={accent.text} textAnchor="middle" fontWeight={800}>{label}</text>
           </g>
         );
       })}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import PromoCode from './PromoCode';
+import WelcomeBanner from './WelcomeBanner';
 
 function api(path, opts) {
   const o = Object.assign({ credentials:'include' }, opts || {});
@@ -169,6 +170,7 @@ export default function Account(props) {
 
   return (
     <div>
+      <WelcomeBanner user={user} />
       <div className="card">
         <div className="rowBetween">
           <h3>Signed in as {user.username}</h3>

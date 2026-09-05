@@ -4,6 +4,12 @@ import '../styles/theme.css';
 import '../styles/genre.css';
 import '../styles/locker.css';
 import '../styles/diceTray.css';
+import WelcomeGate from '../components/WelcomeGate';
 export default function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />;
+  return (
+    <>
+      <WelcomeGate />
+      <Component {...pageProps} />
+    </>
+  );
 }

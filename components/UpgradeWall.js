@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PromoCode from './PromoCode';
 
 export default function UpgradeWall(props) {
   const usage = props.usage || {};
@@ -92,6 +93,15 @@ export default function UpgradeWall(props) {
           })}
         </div>
         {err ? <p className="warn">{err}</p> : null}
+        <PromoCode
+          hasAccount={hasAccount}
+          promoUntil={props.promoUntil || usage.promoUntil}
+          onNeedAccount={props.onNeedAccount}
+          onRedeemed={function (body) {
+            if (props.onRedeemed) props.onRedeemed(body);
+            else if (typeof window !== 'undefined') window.location.reload();
+          }}
+        />
         <p className="muted sm" style={{ marginTop:14 }}>Cancel any time. Payments handled by Stripe - card details never touch Guitar Dice.</p>
         {current !== 'free' ? <p style={{ marginTop:8 }}><a href="/api/billing/portal">Manage or cancel your subscription</a></p> : null}
       </div>

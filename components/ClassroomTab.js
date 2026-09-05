@@ -8,6 +8,7 @@ import GuideShelf from './GuideShelf';
 import DailySession from './DailySession';
 import LessonPictures from './LessonPictures';
 import { chordColor, voicingLabel } from '../lib/theory';
+import { placementLines } from '../lib/chordFingers';
 import { strumChord } from '../lib/audio';
 import { PASS_SCORE } from '../lib/path';
 import { recordAttempt } from '../lib/pathProgress';
@@ -63,17 +64,24 @@ export default function ClassroomTab(props) {
           {lesson.watchFor ? <div className="watchFor"><strong>Watch for</strong>{lesson.watchFor}</div> : null}
           {lesson.chords && data ? (
             <div style={{ marginTop:18 }}>
-              <h3>Chord shapes used</h3>
+              <h3>Chord shapes and fingers</h3>
+              <p className="muted sm">1 = index, 2 = middle, 3 = ring, 4 = pinky. Open strings are the hollow circles. x means do not play that string.</p>
               <div className="chordRow">
                 {lesson.chords.map(function (k, i) {
-                  const c = data.chords[k];
+                  const c = data.chords[k] ? Object.assign({ key: k }, data.chords[k]) : null;
                   if (!c) return null;
                   const col = chordColor(i);
+                  const lines = placementLines(c);
                   return (
                     <div key={k} className="chordCard" style={{ borderColor:col.dot }} onClick={function () { strumChord(c.positions, true); }}>
                       <strong>{c.name}</strong>
                       <span className="chordPos">{voicingLabel(c)}</span>
                       <ChordDiagram chord={c} accent={col} />
+                      {lines.length ? (
+                        <ul className="muted sm" style={{ textAlign:'left', marginTop:8 }}>
+                          {lines.map(function (line) { return <li key={line}>{line}</li>; })}
+                        </ul>
+                      ) : null}
                     </div>
                   );
                 })}

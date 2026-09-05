@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PromoCode from './PromoCode';
 
 function api(path, opts) {
   const o = Object.assign({ credentials:'include' }, opts || {});
@@ -175,6 +176,11 @@ export default function Account(props) {
         </div>
         {user.email ? <p className="muted sm">{user.email}</p> : null}
       </div>
+      <PromoCode
+        hasAccount={true}
+        promoUntil={props.promoUntil}
+        onRedeemed={function () { if (props.onChange) props.onChange(); }}
+      />
       <div className="card">
         <h3>Change password</h3>
         <label className="fieldLabel">Current password</label>
@@ -182,7 +188,7 @@ export default function Account(props) {
         <label className="fieldLabel">New password</label>
         <input className="field" type="password" value={password} onChange={function (e) { setPassword(e.target.value); }} />
         <label className="fieldLabel">Repeat new password</label>
-        <input className="field" type="password" value={password2} onChange={function (e) { setPassword2(e.target.value); }} />
+        <input className="field" value={password2} type="password" onChange={function (e) { setPassword2(e.target.value); }} />
         {err ? <p className="warn">{err}</p> : null}
         {msg ? <p className="okText sm">{msg}</p> : null}
         <button className="btn primary wide" disabled={busy} onClick={doChangePassword}>Change password</button>

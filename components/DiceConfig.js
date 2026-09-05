@@ -40,6 +40,7 @@ export default function DiceConfig(props) {
   const shown = slots.slice(0, count);
   while (shown.length < count) shown.push('chord');
   const line = matchLessons(lessons, shown, props.genre);
+  const activeFace = FACES[shown[active]] || FACES.chord;
 
   useEffect(function () {
     if (props.lessons && props.lessons.length) return;
@@ -87,6 +88,12 @@ export default function DiceConfig(props) {
           );
         })}
       </div>
+      <div className="notice" style={{ marginTop: 10 }}>
+        <span>
+          Tap a die to select it, then tap it again to change the type — or pick a chip below.
+          Die {active + 1} is set to <b>{activeFace.label}</b>.
+        </span>
+      </div>
       <div className="diceGrid">
         {shown.map(function (s, i) {
           const face = FACES[s] || FACES.chord;
@@ -104,7 +111,7 @@ export default function DiceConfig(props) {
           );
         })}
       </div>
-      <p className="muted sm" style={{ marginTop: 10 }}>Tap a die to cycle it. Or tap a type below to set the highlighted die.</p>
+      <span className="optLabel" style={{ marginTop: 12, display: 'block' }}>Set die {active + 1}</span>
       <div className="optRow">
         {FACE_ORDER.filter(function (id) { return allowed.indexOf(id) >= 0; }).map(function (id) {
           const face = FACES[id];
@@ -115,7 +122,7 @@ export default function DiceConfig(props) {
               type="button"
               className={'chipBtn' + (on ? ' on' : '')}
               style={{ borderColor: face.color }}
-              onClick={function () { setActive(active); setFace(id); }}
+              onClick={function () { setFace(id); }}
             >
               {face.label}
             </button>

@@ -1,6 +1,7 @@
 import { currentUser, findCustomer, activeTierForCustomer, isLiveKey, secret } from '../../../lib/stripeBilling';
 import { parseOwned } from '../../../lib/shopLayouts';
 import { readPromoGrant } from '../../../lib/promoCodes';
+import { familyGrantFor } from '../../../lib/familyGrant';
 import { bestTier, normalizeTier } from '../../../lib/entitlements';
 
 function pack(tier, extra) {
@@ -25,10 +26,11 @@ export default async function handler(req, res) {
     return res.status(200).json(pack('free', { hasAccount: false, live: isLiveKey(secret()), layouts: [] }));
   }
   try {
+    const family = familyGrantFor(user);
     const customer = await findCustomer(user);
     const sub = await activeTierForCustomer(customer && customer.id);
     const promo = readPromoGrant(customer);
-    const tier = bestTier(sub.tier, promo && promo.tier);
+    const tier = bestTier(sub.tier, promo && promo.tier, family && family.tier);
     const layouts = parseOwned(customer && customer.metadata && customer.metadata.gd_layouts);
     return res.status(200).json(pack(tier, {
       hasAccount: true,
@@ -39,14 +41,18 @@ export default async function handler(req, res) {
       live: isLiveKey(secret()),
       promoUntil: promo ? promo.until : 0,
       promoCode: promo ? promo.code : '',
-      source: promo && bestTier(promo.tier, sub.tier) === promo.tier && promo.tier !== sub.tier ? 'promo' : 'subscription'
+      family: !!family,
+      source: family ? 'family' : (promo && bestTier(promo.tier, sub.tier) === promo.tier && promo.tier !== sub.tier ? 'promo' : 'subscription')
     }));
   } catch (e) {
-    return res.status(200).json(pack('free', {
+    const family = familyGrantFor(user);
+    return res.status(200).json(pack(family ? 'extreme' : 'free', {
       hasAccount: true,
       username: user.username,
       layouts: [],
       live: isLiveKey(secret()),
+      family: !!family,
+      source: family ? 'family' : 'subscription',
       message: e.message
     }));
   }

@@ -150,7 +150,7 @@ export default function PlayAlong(props) {
           planned.forEach(function (n, i) {
             if (hits[i] || f <= 0 || info.clarity < need) return;
             if (songT < n.start - 0.12 || songT > n.start + n.window) return;
-            if (matchesAnyPitch(f, n.freqs || [n.freq], 70)) {
+            if (matchesAnyPitch(f, n.freqs || [n.freq], 90)) {
               hits[i] = true;
               setLiveHits(hits.filter(Boolean).length);
             }

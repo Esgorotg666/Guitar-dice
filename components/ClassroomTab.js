@@ -94,6 +94,7 @@ export default function ClassroomTab(props) {
       {shelf === 'path' ? (
         <ChallengePath
           style={style}
+          skill={props.skill}
           lessons={lessons}
           progress={progress}
           pass={PASS_SCORE}

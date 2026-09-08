@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ensureAudio, playClick, playSequence } from '../lib/audio';
-import { detectPitch, centsOff } from '../lib/pitch';
+import { detectPitchInfo, matchesAnyPitch } from '../lib/pitch';
 import { GOLD_SCORE, PASS_SCORE, scheduleNotes } from '../lib/path';
 
 export default function PlayAlong(props) {
@@ -116,7 +116,7 @@ export default function PlayAlong(props) {
 
     musicTimer = setTimeout(function () {
       if (stopped) return;
-      playSequence(notes, bpm).then(function (stopFn) {
+      playSequence(notes, bpm, null, null, 0.22).then(function (stopFn) {
         if (stopped) { if (stopFn) stopFn(); return; }
         stopLesson = stopFn;
       });
@@ -131,13 +131,14 @@ export default function PlayAlong(props) {
         setPhase('play');
         if (mode === 'mic' && analyser) {
           analyser.getFloatTimeDomainData(buf);
-          const f = detectPitch(buf, micCtx.sampleRate);
-          if (f > 0) setHeard(f.toFixed(0) + ' Hz');
+          const info = detectPitchInfo(buf, micCtx.sampleRate);
+          const f = info.freq;
+          if (f > 0 && info.clarity >= 0.75) setHeard(Math.round(f) + ' Hz');
           const songT = (now - musicStart) / 1000;
           planned.forEach(function (n, i) {
-            if (hits[i] || f <= 0) return;
+            if (hits[i] || f <= 0 || info.clarity < 0.75) return;
             if (songT < n.start - 0.12 || songT > n.start + n.window) return;
-            if (Math.abs(centsOff(f, n.freq)) <= 70) {
+            if (matchesAnyPitch(f, n.freqs || [n.freq], 70)) {
               hits[i] = true;
               setLiveHits(hits.filter(Boolean).length);
             }
@@ -200,7 +201,7 @@ export default function PlayAlong(props) {
         )}
       </div>
       <p className="muted sm">
-        Hold the phone near the guitar. After the count-in you will hear the lesson. Play those notes or chords into the mic. {PASS_SCORE}% or higher unlocks the next lesson.
+        Guide track is quiet on purpose so the mic hears you. Play the guitar into the phone. {PASS_SCORE}% unlocks the next lesson.
       </p>
       <div className="optRow">
         <button className={'chipBtn' + (mode === 'mic' ? ' on' : '')} onClick={function () { setMode('mic'); }}>
@@ -210,11 +211,6 @@ export default function PlayAlong(props) {
           Tap practice (no pass)
         </button>
       </div>
-      <p className="muted sm">
-        {mode === 'mic'
-          ? 'Allow the microphone when Safari asks. Play the real guitar along with the audio.'
-          : 'Tap only trains timing. It will not pass the lesson or open the next one.'}
-      </p>
       {err ? <p className="warn">{err}</p> : null}
       {phase === 'count' ? <p className="okText">Count-in… get the guitar ready.</p> : null}
       {phase === 'play' && mode === 'mic' ? (
@@ -231,12 +227,8 @@ export default function PlayAlong(props) {
           <span>{result.hits} of {result.total} {result.mode === 'mic' ? 'notes heard from the guitar' : 'practice taps'}</span>
           <span>
             {result.practiceOnly
-              ? 'Tap practice does not unlock the next lesson. Switch to Guitar + mic and play it.'
-              : (result.gold
-                ? 'Gold clear. Next lesson is open.'
-                : (result.passed
-                  ? 'You played it. Go back to the folder for the next lesson.'
-                  : 'Need ' + PASS_SCORE + '% from the guitar mic to move on.'))}
+              ? 'Tap practice does not unlock the next lesson.'
+              : (result.passed ? 'You played it. Next lesson is open.' : 'Need ' + PASS_SCORE + '% from the guitar mic.')}
           </span>
         </div>
       ) : null}

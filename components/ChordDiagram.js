@@ -17,7 +17,7 @@ export default function ChordDiagram(props) {
   const FRETS = 5, W = 168, H = 210, padX = 28, padTop = 44;
   const gridW = W - padX * 2, gridH = 126;
   const dx = gridW / 5, dy = gridH / FRETS;
-  const uid = 'cd' + String(chord.name || 'c').replace(/\W/g, '') + start;
+  const uid = 'cd' + String(chord.name || 'c').replace(/\W/g, '') + start + String(positions.join(''));
 
   let barre = null;
   if (fretted.length >= 3) {
@@ -32,10 +32,10 @@ export default function ChordDiagram(props) {
   }
 
   return (
-    <svg viewBox={'0 0 ' + W + ' ' + H} width="100%" style={{ maxWidth: W, display: 'block', margin: '0 auto' }} role="img" aria-label={chord.name}>
+    <svg viewBox={'0 0 ' + W + ' ' + H} width="100%" style={{ maxWidth: W, display: 'block', margin: '0 auto', background: '#3d2618' }} role="img" aria-label={chord.name}>
       <defs>
         <linearGradient id={uid + 'wood'} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#5a3a24" />
+          <stop offset="0%" stopColor="#6a452c" />
           <stop offset="50%" stopColor="#3d2618" />
           <stop offset="100%" stopColor="#2a1810" />
         </linearGradient>
@@ -44,10 +44,8 @@ export default function ChordDiagram(props) {
           <stop offset="55%" stopColor="#b7a27a" />
           <stop offset="100%" stopColor="#7d6a48" />
         </linearGradient>
-        <filter id={uid + 'soft'} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="1" stdDeviation="1.2" floodColor="#000" floodOpacity="0.45" />
-        </filter>
       </defs>
+      <rect x="0" y="0" width={W} height={H} rx="8" fill="#1a120c" />
       <rect x={padX - 10} y={padTop - 8} width={gridW + 20} height={gridH + 16} rx="6" fill={'url(#' + uid + 'wood)'} />
       {start <= 1 ? <rect x={padX - 3} y={padTop - 7} width={gridW + 6} height={7} rx="1.5" fill={'url(#' + uid + 'wire)'} /> : null}
       {start > 1 ? <text x={padX - 10} y={padTop + dy * 0.7} fontSize={11} fill="#f0d37a" textAnchor="end" fontWeight={700}>{start}fr</text> : null}
@@ -67,13 +65,12 @@ export default function ChordDiagram(props) {
           rx={8}
           fill={accent.dot}
           opacity={0.95}
-          filter={'url(#' + uid + 'soft)'}
         />
       ) : null}
       {positions.map(function (p, i) {
         const x = padX + dx * i;
         if (p === 'X' || p === 'x') {
-          return <text key={'m'+i} x={x} y={padTop - 14} fontSize={13} fill="#c9b89a" textAnchor="middle" fontWeight={800}>✕</text>;
+          return <text key={'m'+i} x={x} y={padTop - 14} fontSize={13} fill="#c9b89a" textAnchor="middle" fontWeight={800}>X</text>;
         }
         if (p === 0) {
           return <circle key={'o'+i} cx={x} cy={padTop - 16} r={5.5} fill="none" stroke="#f4ead4" strokeWidth={2} />;
@@ -84,7 +81,7 @@ export default function ChordDiagram(props) {
         const finger = fingers && fingers[i];
         const label = (showFingers && finger) ? String(finger) : (noteAt(i, p) || '');
         return (
-          <g key={'d'+i} filter={'url(#' + uid + 'soft)'}>
+          <g key={'d'+i}>
             <circle cx={x} cy={cy} r={9.5} fill={accent.dot} stroke="#fff8ea" strokeWidth={1.2} />
             <text x={x} y={cy + 3.6} fontSize={10} fill={accent.text} textAnchor="middle" fontWeight={800}>{label}</text>
           </g>

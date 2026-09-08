@@ -1,8 +1,9 @@
-import { currentUser, secret, isLiveKey, stripe, tierForPrice } from '../../../lib/stripeBilling';
+import { currentUser, secret, isLiveKey, stripe } from '../../../lib/stripeBilling';
 import { isAdminUser } from '../../../lib/adminGate';
 import { familyEmails, familyGrantFor } from '../../../lib/familyGrant';
 import { readPromoGrant } from '../../../lib/promoCodes';
 import { bestTier } from '../../../lib/entitlements';
+import { readTraffic } from '../../../lib/siteTraffic';
 
 const SUPA = 'https://fjwkfqmyfufulwjecjlf.supabase.co';
 
@@ -132,12 +133,13 @@ export default async function handler(req, res) {
     const email = String(row.email || '').trim().toLowerCase();
     const username = String(row.username || '').trim().toLowerCase();
     const customer = idx.byEmail[email] || idx.byUser[username] || null;
-    const extra = classify(row, customer);
-    return Object.assign({}, row, extra);
+    return Object.assign({}, row, classify(row, customer));
   });
 
   const counts = { free: 0, promo: 0, paid: 0, family: 0 };
   users.forEach(function (u) { counts[u.source] = (counts[u.source] || 0) + 1; });
+
+  const traffic = await readTraffic();
 
   return res.status(200).json({
     ok: true,
@@ -149,6 +151,7 @@ export default async function handler(req, res) {
     stripeCustomers: stripePack.list.length,
     stripeHasMore: !!stripePack.hasMore,
     stripeLive: !!stripePack.live,
+    traffic: traffic,
     authError: authError || '',
     admin: user.username || user.email
   });

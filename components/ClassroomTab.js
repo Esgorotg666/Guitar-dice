@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LessonPlayer from './LessonPlayer';
 import PlayAlong from './PlayAlong';
 import ChallengePath from './ChallengePath';
@@ -11,6 +11,7 @@ import { placementLines } from '../lib/chordFingers';
 import { strumChord } from '../lib/audio';
 import { PASS_SCORE } from '../lib/path';
 import { recordAttempt } from '../lib/pathProgress';
+import { bestTier } from '../lib/entitlements';
 
 export default function ClassroomTab(props) {
   const lessons = props.lessons || [];
@@ -22,6 +23,21 @@ export default function ClassroomTab(props) {
   const lessonFile = props.lessonFile || {};
   const [shelf, setShelf] = useState('class');
   const [showSteps, setShowSteps] = useState(false);
+  const [liveTier, setLiveTier] = useState(props.tier || 'free');
+
+  useEffect(function () {
+    var alive = true;
+    fetch('/api/billing/status', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (b) {
+        if (!alive) return;
+        setLiveTier(bestTier(props.tier, b && b.tier));
+      })
+      .catch(function () {});
+    return function () { alive = false; };
+  }, [props.tier]);
+
+  const tier = bestTier(props.tier, liveTier);
 
   const nav = (
     <div className="levelRow learnNav">
@@ -89,8 +105,8 @@ export default function ClassroomTab(props) {
   return (
     <div>
       {nav}
-      {shelf === 'theory' ? <GuideShelf kind="theory" tier={props.tier} onUpgrade={props.onUpgrade} /> : null}
-      {shelf === 'tech' ? <GuideShelf kind="tech" tier={props.tier} onUpgrade={props.onUpgrade} /> : null}
+      {shelf === 'theory' ? <GuideShelf kind="theory" tier={tier} onUpgrade={props.onUpgrade} /> : null}
+      {shelf === 'tech' ? <GuideShelf kind="tech" tier={tier} onUpgrade={props.onUpgrade} /> : null}
       {shelf === 'path' ? (
         <ChallengePath
           style={style}
@@ -105,7 +121,7 @@ export default function ClassroomTab(props) {
       {shelf === 'class' ? (
         <ClassroomFolders
           lessons={lessons}
-          tier={props.tier}
+          tier={tier}
           progress={progress}
           onOpen={props.onOpen}
           onUpgrade={props.onUpgrade}

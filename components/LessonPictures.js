@@ -23,7 +23,8 @@ function Neck(props) {
 }
 
 function FingerDot(props) {
-  const x = 70 + (props.fret - 0.5) * 52;
+  const fret = Math.max(0, Number(props.fret) || 0);
+  const x = fret === 0 ? 48 : 70 + (Math.min(fret, 4) - 0.5) * 52;
   const y = 30 + props.string * 18;
   return (
     <g>
@@ -62,6 +63,28 @@ function TunePic() {
       <line x1="140" y1="78" x2="140" y2="108" stroke="#ffc65c" strokeWidth="3" />
       <text x="140" y="148" textAnchor="middle" fill="#c3ced9" fontSize="12">Tools → Tuner. Tiny turns on the peg.</text>
     </svg>
+  );
+}
+
+function PhrasePic(props) {
+  const raw = (props.lesson && props.lesson.notes) || [];
+  const seen = {};
+  const dots = [];
+  raw.forEach(function (n) {
+    if (!n || n.beats === 0) return;
+    const key = n.string + ':' + n.fret;
+    if (seen[key]) return;
+    seen[key] = true;
+    dots.push(n);
+  });
+  const show = dots.slice(0, 8);
+  if (!show.length) return <Neck label="Lesson map" />;
+  return (
+    <Neck label="Practice map" highlight={show.map(function (d) { return d.string; })}>
+      {show.map(function (d, i) {
+        return <FingerDot key={i} string={d.string} fret={d.fret} n={i + 1} />;
+      })}
+    </Neck>
   );
 }
 
@@ -191,11 +214,27 @@ const PICS = {
         </div>
       );
     }
+  },
+  pent: {
+    title: 'Pentatonic box — two notes per string',
+    caption: 'Climb low to high. Numbered dots are the first pass of the box.',
+    node: PhrasePic
+  },
+  bend: {
+    title: 'Bend to a target fret',
+    caption: 'Push the lower fret until it matches the higher target. Then shake.',
+    node: PhrasePic
+  },
+  slide: {
+    title: 'Slide between boxes',
+    caption: 'One motion. Do not pick the fret you slide into.',
+    node: PhrasePic
   }
 };
 
 function kindFromLesson(lesson) {
-  const id = String((lesson && lesson.id) || '');
+  const id = String((lesson && lesson.id) || '').toLowerCase();
+  const title = String((lesson && lesson.title) || '').toLowerCase();
   if (id.indexOf('day1-hold') === 0) return 'hold';
   if (id.indexOf('day1-strings') === 0) return 'strings';
   if (id.indexOf('day1-tune') === 0) return 'tune';
@@ -206,22 +245,28 @@ function kindFromLesson(lesson) {
   if (id.indexOf('barre-mini') === 0) return 'barreMini';
   if (id.indexOf('barre-f') === 0) return 'barreF';
   if (id.indexOf('barre-bm') === 0) return 'barreBm';
-  if (id.indexOf('barre-move') === 0) return 'barreMove';
-  return null;
+  if (id.indexOf('barre-move') === 0 || id.indexOf('barre') === 0) return 'barreMove';
+  if (id.indexOf('pent') !== -1 || title.indexOf('pent') !== -1) return 'pent';
+  if (id.indexOf('bend') !== -1 || title.indexOf('bend') !== -1) return 'bend';
+  if (id.indexOf('slide') !== -1 || title.indexOf('slide') !== -1) return 'slide';
+  return 'phrase';
 }
 
 export default function LessonPictures(props) {
-  const kind = kindFromLesson(props.lesson);
-  if (!kind || !PICS[kind]) return null;
+  const lesson = props.lesson;
+  if (!lesson) return null;
+  const kind = kindFromLesson(lesson);
   const pic = PICS[kind];
-  const Node = pic.node;
+  const Node = pic ? pic.node : PhrasePic;
+  const title = pic ? pic.title : (lesson.title || 'Fret map');
+  const caption = pic ? pic.caption : 'Green dots are the notes in this run. Play them in order on the big fretboard below.';
   return (
     <div className="lessonPics">
-      <span className="optLabel">{pic.title}</span>
+      <span className="optLabel">{title}</span>
       <div className="lessonPicFrame">
-        <Node />
+        <Node lesson={lesson} />
       </div>
-      <p className="muted sm">{pic.caption}</p>
+      <p className="muted sm">{caption}</p>
     </div>
   );
 }

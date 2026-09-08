@@ -14,9 +14,21 @@ import { PASS_SCORE } from '../lib/path';
 import { recordAttempt } from '../lib/pathProgress';
 import { bestTier } from '../lib/entitlements';
 
+function resolveLesson(picked, fromParent, list) {
+  var raw = fromParent || picked;
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    return (list || []).filter(function (l) { return l.id === raw; })[0] || null;
+  }
+  if (raw.id && raw.notes) return raw;
+  if (raw.id) {
+    return (list || []).filter(function (l) { return l.id === raw.id; })[0] || raw;
+  }
+  return raw;
+}
+
 export default function ClassroomTab(props) {
   const lessons = props.lessons || [];
-  const lesson = props.lesson;
   const data = props.data;
   const style = props.style;
   const progress = props.progress;
@@ -25,6 +37,7 @@ export default function ClassroomTab(props) {
   const [shelf, setShelf] = useState('class');
   const [showSteps, setShowSteps] = useState(false);
   const [liveTier, setLiveTier] = useState(props.tier || 'free');
+  const [picked, setPicked] = useState(null);
 
   useEffect(function () {
     var alive = true;
@@ -39,6 +52,18 @@ export default function ClassroomTab(props) {
   }, [props.tier]);
 
   const tier = bestTier(props.tier, liveTier);
+  const lesson = resolveLesson(picked, props.lesson, lessons);
+
+  function openLesson(l) {
+    setPicked(l);
+    setShowSteps(false);
+    if (props.onOpen) props.onOpen(l && l.id ? l.id : l);
+  }
+
+  function goBack() {
+    setPicked(null);
+    if (props.onBack) props.onBack();
+  }
 
   const nav = (
     <div className="levelRow learnNav">
@@ -52,7 +77,7 @@ export default function ClassroomTab(props) {
   if (lesson) {
     return (
       <div>
-        <button className="backBtn" onClick={function () { props.onBack(); }}>Back to folders</button>
+        <button className="backBtn" onClick={goBack}>Back to folders</button>
         <div className="card sheetCard">
           <LessonSheet lesson={lesson} />
           <LessonPictures lesson={lesson} />
@@ -110,7 +135,7 @@ export default function ClassroomTab(props) {
           lessons={lessons}
           progress={progress}
           pass={PASS_SCORE}
-          onOpen={props.onOpen}
+          onOpen={openLesson}
           onUpgrade={props.onUpgrade}
         />
       ) : null}
@@ -119,7 +144,7 @@ export default function ClassroomTab(props) {
           lessons={lessons}
           tier={tier}
           progress={progress}
-          onOpen={props.onOpen}
+          onOpen={openLesson}
           onUpgrade={props.onUpgrade}
         />
       ) : null}

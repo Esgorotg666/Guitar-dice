@@ -24,7 +24,6 @@ module.exports = {
         { source: '/api/usage/:path*', destination: FN + '/api/usage/:path*' },
         { source: '/api/preferences', destination: FN + '/api/preferences' },
         { source: '/api/preferences/:path*', destination: FN + '/api/preferences/:path*' },
-        { source: '/api/streak/:path*', destination: FN + '/api/streak/:path*' },
         { source: '/api/chord-progressions', destination: FN + '/api/chord-progressions' },
         { source: '/api/chord-progressions/:path*', destination: FN + '/api/chord-progressions/:path*' }
       ],

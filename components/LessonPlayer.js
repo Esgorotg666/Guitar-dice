@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { playSequence, playProgressionChords, strumChord } from '../lib/audio';
 import { noteAt, SINGLE_INLAYS, DOUBLE_INLAYS } from '../lib/theory';
+import InlayLayer from './InlayLayer';
 
 const STRINGS = ['e','B','G','D','A','E'];
 const FALLBACK_LEGEND = {
@@ -172,17 +173,7 @@ export default function LessonPlayer(props) {
       <div className="boardScroll" ref={scrollRef}>
         <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role="img" aria-label="Lesson fretboard">
           <rect x={padL} y={padT} width={gw} height={gh} fill="#0d1319" rx={4} />
-          {SINGLE_INLAYS.filter(function (m) { return m <= frets; }).map(function (m) {
-            return <circle key={'in'+m} cx={padL+dx*(m-0.5)} cy={padT+gh/2} r={7} fill="#243240" />;
-          })}
-          {DOUBLE_INLAYS.filter(function (m) { return m <= frets; }).map(function (m) {
-            return (
-              <g key={'dbl'+m}>
-                <circle cx={padL+dx*(m-0.5)} cy={padT+gh*0.27} r={7} fill="#2c3d4d" />
-                <circle cx={padL+dx*(m-0.5)} cy={padT+gh*0.73} r={7} fill="#2c3d4d" />
-              </g>
-            );
-          })}
+          <InlayLayer guitar={props.guitar} padL={padL} padT={padT} dx={dx} gh={gh} frets={frets} />
           {Array.from({ length:frets+1 }).map(function (_, f) {
             return <line key={'fr'+f} x1={padL+dx*f} y1={padT} x2={padL+dx*f} y2={padT+gh} stroke={f===0?'#e8eef5':'#39485a'} strokeWidth={f===0?4:1.2} />;
           })}

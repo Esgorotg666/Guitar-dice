@@ -34,7 +34,7 @@ export default function ClassroomFolders(props) {
   return (
     <div className="classFolders">
       <p className="muted sm" style={{ margin: '0 0 8px' }}>
-        Pick a level, open one folder, finish its lessons, then play the finale.
+        Pick a level. Open one folder. Finish those lessons. Then play the finale.
       </p>
       <div className="levelRow">
         {LEVELS.map(function (lv) {
@@ -55,7 +55,7 @@ export default function ClassroomFolders(props) {
       </div>
       {groups.map(function (g) {
         const open = openId === g.unit.id;
-        const capReady = g.drills.length > 0 && g.done >= Math.max(1, g.drills.length - 0);
+        const capReady = g.drills.length > 0 && g.done >= Math.max(1, g.drills.length);
         return (
           <div key={g.unit.id} className="folderCard">
             <button className="folderHead" onClick={function () { setOpenId(open ? '' : g.unit.id); }}>
@@ -105,20 +105,20 @@ export default function ClassroomFolders(props) {
                       <p className="lessonSummary">
                         {ready
                           ? l.summary
-                          : 'Clear the lessons in this folder first. The finale uses all of them in one piece.'}
+                          : 'Clear this folder first. The finale uses all of it in one piece.'}
                       </p>
                     </button>
                   );
                 })}
                 {!g.finales.length ? (
-                  <p className="muted sm">More finales for this folder are coming. Play the listed lessons as a set.</p>
+                  <p className="muted sm">Play the listed lessons as a set.</p>
                 ) : null}
               </div>
             ) : null}
           </div>
         );
       })}
-      {!groups.length ? <p className="muted sm">No lessons in this level yet for this style.</p> : null}
+      {!groups.length ? <p className="muted sm">No lessons in this level for this style yet.</p> : null}
     </div>
   );
 }

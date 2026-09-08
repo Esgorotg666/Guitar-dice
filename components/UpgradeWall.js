@@ -31,7 +31,7 @@ export default function UpgradeWall(props) {
         if (res.ok && res.b.url) { window.location.href = res.b.url; return; }
         setBusy('');
         if (res.b.needsAccount) { setErr(''); if (props.onNeedAccount) props.onNeedAccount(); return; }
-        setErr(res.b.message || 'Could not start checkout.');
+        setErr(res.b.message || 'Payment did not finish. Try again.');
       })
       .catch(function () { setErr('Could not reach the payment service.'); setBusy(''); });
   }
@@ -46,25 +46,25 @@ export default function UpgradeWall(props) {
         {props.modal ? <button className="wallClose" onClick={props.onClose} aria-label="Close">x</button> : null}
         {props.outOfRolls ? (
           <div className="wallHead">
-            <h2>That is your 3 free rolls for today</h2>
-            <p className="muted">Watch an ad for 3 more, or go unlimited and get more dice on every roll.</p>
-            {adsLeft > 0 ? <button className="btn green wide" onClick={props.onWatchAd}>Watch an ad - plus 3 rolls</button>
+            <h2>Out of rolls today</h2>
+            <p className="muted">Watch 15 seconds for 3 rolls, or pick a plan.</p>
+            {adsLeft > 0 ? <button className="btn green wide" onClick={props.onWatchAd}>Watch 15 seconds for 3 rolls</button>
               : <p className="muted sm">No ad rewards left today.</p>}
-            <div className="wallOr"><span>or upgrade</span></div>
+            <div className="wallOr"><span>or</span></div>
           </div>
         ) : (
           <div className="wallHead">
-            <h2>Plans</h2>
-            <p className="muted">More dice means more chords per roll, and more of the neck at once.</p>
+            <h2>Pick a plan</h2>
+            <p className="muted">Free has daily rolls and entry lessons. Premium adds folders and the loop. Extreme is everything.</p>
           </div>
         )}
         {!hasAccount ? (
           <div className="acctNote">
-            <b>Heads up:</b> subscribing needs a free account, so your plan follows you instead of living in this browser.
+            <b>Sign in to keep rolls and progress.</b>
             {props.onNeedAccount ? <button className="linkBtn" onClick={props.onNeedAccount}>Create one now</button> : null}
           </div>
         ) : null}
-        {!plans ? <p className="muted">Loading plans...</p> : null}
+        {!plans ? <p className="muted">Loading plans…</p> : null}
         <div className="planGrid">
           {(plans || []).map(function (p) {
             const isCurrent = p.tier === current;
@@ -85,7 +85,7 @@ export default function UpgradeWall(props) {
                   : paid ? (
                     <button className={'btn ' + (p.tier === 'extreme' ? 'green' : 'primary') + ' wide'}
                       disabled={busy === p.tier || !hasAccount} onClick={function () { startCheckout(p.tier); }}>
-                      {!hasAccount ? 'Sign in to buy' : (busy === p.tier ? 'Opening checkout...' : 'Get ' + p.label)}
+                      {!hasAccount ? 'Sign in to buy' : (busy === p.tier ? 'Opening checkout…' : 'Get ' + p.label)}
                     </button>
                   ) : null}
               </div>
@@ -102,8 +102,8 @@ export default function UpgradeWall(props) {
             else if (typeof window !== 'undefined') window.location.reload();
           }}
         />
-        <p className="muted sm" style={{ marginTop:14 }}>Cancel any time. Payments handled by Stripe - card details never touch Guitar Dice.</p>
-        {current !== 'free' ? <p style={{ marginTop:8 }}><a href="/api/billing/portal">Manage or cancel your subscription</a></p> : null}
+        <p className="muted sm" style={{ marginTop:14 }}>Cancel any time. Card details stay with Stripe.</p>
+        {current !== 'free' ? <p style={{ marginTop:8 }}><a href="/api/billing/portal">Manage billing</a></p> : null}
       </div>
     </div>
   );

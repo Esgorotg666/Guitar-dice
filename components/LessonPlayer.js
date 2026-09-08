@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playSequence, playProgressionChords, strumChord } from '../lib/audio';
 import { noteAt, SINGLE_INLAYS, DOUBLE_INLAYS } from '../lib/theory';
 import InlayLayer from './InlayLayer';
+import ChordDiagram from './ChordDiagram';
 
 const STRINGS = ['e','B','G','D','A','E'];
 const FALLBACK_LEGEND = {
@@ -43,6 +44,13 @@ function buildGroups(notes) {
   return groups;
 }
 
+function groupToChord(g) {
+  if (!g || g.role !== 'chord') return null;
+  const positions = ['X','X','X','X','X','X'];
+  g.notes.forEach(function (nt) { positions[nt.string] = nt.fret; });
+  return { name: g.label || 'Chord', positions: positions };
+}
+
 export default function LessonPlayer(props) {
   const notes = props.notes || [];
   const groups = buildGroups(notes);
@@ -74,6 +82,7 @@ export default function LessonPlayer(props) {
       }).filter(Boolean));
     }).catch(function () {});
     return function () { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chordKeys.join('|')]);
 
   const currentGroup = grouped ? groups[Math.max(0, Math.min(active, groups.length - 1))] : null;
@@ -86,6 +95,7 @@ export default function LessonPlayer(props) {
   const gw = W - padL - 20, gh = H - padT - 56;
   const dx = gw / frets, dy = gh / 5;
   const holdAll = chordMode || (grouped && currentGroup && currentGroup.role === 'chord');
+  const chartChord = grouped ? groupToChord(currentGroup) : (chordMode ? (shapes[Math.max(0, active)] || shapes[0]) : null);
 
   async function toggle() {
     if (playing) {
@@ -160,64 +170,76 @@ export default function LessonPlayer(props) {
   const heading = grouped && currentGroup
     ? currentGroup.label
     : (chordMode && shapes[Math.max(0, active)] ? (shapes[Math.max(0, active)].name || shapes[Math.max(0, active)].key) : null);
+  const isLine = grouped && currentGroup && currentGroup.role === 'line';
 
   return (
     <div className="lessonPlayer">
       {heading ? (
-        <p className="lessonKey" style={{ margin:'0 0 8px' }}>
-          {grouped && currentGroup && currentGroup.role === 'line'
-            ? <span>Connecting line: <strong>{heading}</strong> — use the marked hammer-ons, pull-offs, slides, and mutes.</span>
-            : <span>Hold the whole <strong>{heading}</strong> shape, then move.</span>}
+        <p className="nowPlaying">
+          {isLine
+            ? <span>Now: connecting line — <b>{heading}</b>. Play the numbered notes in order.</span>
+            : <span>Now: hold all dots of <b>{heading}</b> together. This is one chord, not one string at a time.</span>}
         </p>
       ) : null}
-      <div className="boardScroll" ref={scrollRef}>
-        <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role="img" aria-label="Lesson fretboard">
-          <rect x={padL} y={padT} width={gw} height={gh} fill="#0d1319" rx={4} />
-          <InlayLayer guitar={props.guitar} padL={padL} padT={padT} dx={dx} gh={gh} frets={frets} />
-          {Array.from({ length:frets+1 }).map(function (_, f) {
-            return <line key={'fr'+f} x1={padL+dx*f} y1={padT} x2={padL+dx*f} y2={padT+gh} stroke={f===0?'#e8eef5':'#39485a'} strokeWidth={f===0?4:1.2} />;
-          })}
-          {STRINGS.map(function (nm, s) {
-            return (
-              <g key={'st'+s}>
-                <line x1={padL} y1={padT+dy*s} x2={padL+gw} y2={padT+dy*s} stroke="#6d7d8d" strokeWidth={0.9+s*0.25} />
-                <text x={padL-24} y={padT+dy*s+4} fontSize={13} fill="#8b97a3" fontWeight={600}>{nm}</text>
-              </g>
-            );
-          })}
-          {boardNotes.map(function (n, i) {
-            const cx = n.fret === 0 ? padL-11 : padL+dx*(n.fret-0.5);
-            const cy = padT + dy*(5-n.string);
-            const on = holdAll ? true : (!grouped && !chordMode && active === i);
-            const tech = n.tech || [];
-            return (
-              <g key={'n'+i+'-'+n.string+'-'+n.fret+'-'+(n.group||'x')}>
-                {!holdAll && n.pick ? (
-                  <text x={cx} y={cy-16} fontSize={on?13:11} fill={on?'#ffc65c':'#7f8fa0'}
-                    textAnchor="middle" fontWeight={800}>{pickGlyph(n.pick)}</text>
-                ) : null}
-                <circle cx={cx} cy={cy} r={on?14:11} fill={on?'#ffc65c':'#35c46b'} stroke={on?'#fff2d4':'#1a5c36'} strokeWidth={on?3:1.5} />
-                <text x={cx} y={cy+4} fontSize={on?11:10} fill={on?'#1f1503':'#04160c'} textAnchor="middle" fontWeight={800}>
-                  {holdAll ? (noteAt(n.string, n.fret) || '') : (i+1)}
-                </text>
-                {tech.length ? (
-                  <text x={cx} y={cy+24} fontSize={9} fill={on?'#ffc65c':'#8b97a3'} textAnchor="middle" fontWeight={700}>
-                    {tech.join(' ')}
+      <div className="lessonStage">
+        {chartChord ? <ChordDiagram chord={chartChord} /> : null}
+        <div className="boardScroll" ref={scrollRef}>
+          <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role="img" aria-label="Lesson fretboard">
+            <rect x={padL} y={padT} width={gw} height={gh} fill="#3a2418" rx={4} />
+            <InlayLayer guitar={props.guitar} padL={padL} padT={padT} dx={dx} gh={gh} frets={frets} />
+            {Array.from({ length:frets+1 }).map(function (_, f) {
+              return <line key={'fr'+f} x1={padL+dx*f} y1={padT} x2={padL+dx*f} y2={padT+gh} stroke={f===0?'#f3efe6':'#6a4e36'} strokeWidth={f===0?4:1.2} />;
+            })}
+            {STRINGS.map(function (nm, s) {
+              return (
+                <g key={'st'+s}>
+                  <line x1={padL} y1={padT+dy*s} x2={padL+gw} y2={padT+dy*s} stroke="#d7c7a2" strokeWidth={0.9+s*0.25} />
+                  <text x={padL-24} y={padT+dy*s+4} fontSize={13} fill="#e8dcc8" fontWeight={600}>{nm}</text>
+                </g>
+              );
+            })}
+            {boardNotes.map(function (n, i) {
+              const cx = n.fret === 0 ? padL-11 : padL+dx*(n.fret-0.5);
+              const cy = padT + dy*(5-n.string);
+              const on = holdAll ? true : (!grouped && !chordMode && active === i);
+              const tech = n.tech || [];
+              const label = holdAll
+                ? (n.finger ? String(n.finger) : (noteAt(n.string, n.fret) || ''))
+                : String(i + 1);
+              return (
+                <g key={'n'+i+'-'+n.string+'-'+n.fret+'-'+(n.group||'x')}>
+                  {!holdAll && n.pick ? (
+                    <text x={cx} y={cy-16} fontSize={on?13:11} fill={on?'#ffc65c':'#e8dcc8'}
+                      textAnchor="middle" fontWeight={800}>{pickGlyph(n.pick)}</text>
+                  ) : null}
+                  <circle cx={cx} cy={cy} r={on?14:11} fill={on?'#ffc65c':'#7dffa8'} stroke={on?'#fff2d4':'#14532d'} strokeWidth={on?3:1.5} />
+                  <text x={cx} y={cy+4} fontSize={on?11:10} fill="#1f1503" textAnchor="middle" fontWeight={800}>
+                    {label}
                   </text>
-                ) : null}
-              </g>
-            );
-          })}
-          {Array.from({ length:frets+1 }).map(function (_, f) {
-            const marked = f === 0 || SINGLE_INLAYS.indexOf(f) !== -1 || DOUBLE_INLAYS.indexOf(f) !== -1;
-            return (
-              <text key={'fn'+f} x={f===0?padL-11:padL+dx*(f-0.5)} y={H-8}
-                fontSize={marked?13:11} fill={marked?'#c3ced9':'#63727f'} textAnchor="middle" fontWeight={marked?700:400}>
-                {f === 0 ? 'open' : f}
-              </text>
-            );
-          })}
-        </svg>
+                  {holdAll ? (
+                    <text x={cx} y={cy+22} fontSize={9} fill="#f0d37a" textAnchor="middle" fontWeight={700}>
+                      {noteAt(n.string, n.fret)}
+                    </text>
+                  ) : null}
+                  {!holdAll && tech.length ? (
+                    <text x={cx} y={cy+24} fontSize={9} fill={on?'#ffc65c':'#e8dcc8'} textAnchor="middle" fontWeight={700}>
+                      {tech.join(' ')}
+                    </text>
+                  ) : null}
+                </g>
+              );
+            })}
+            {Array.from({ length:frets+1 }).map(function (_, f) {
+              const marked = f === 0 || SINGLE_INLAYS.indexOf(f) !== -1 || DOUBLE_INLAYS.indexOf(f) !== -1;
+              return (
+                <text key={'fn'+f} x={f===0?padL-11:padL+dx*(f-0.5)} y={H-8}
+                  fontSize={marked?13:11} fill={marked?'#f0d37a':'#cbb48a'} textAnchor="middle" fontWeight={marked?700:400}>
+                  {f === 0 ? 'open' : f}
+                </text>
+              );
+            })}
+          </svg>
+        </div>
       </div>
 
       {shown.length ? (

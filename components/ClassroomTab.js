@@ -5,6 +5,7 @@ import ChallengePath from './ChallengePath';
 import ChordDiagram from './ChordDiagram';
 import GuideShelf from './GuideShelf';
 import LessonPictures from './LessonPictures';
+import LessonSheet from './LessonSheet';
 import ClassroomFolders from './ClassroomFolders';
 import { chordColor, voicingLabel } from '../lib/theory';
 import { placementLines } from '../lib/chordFingers';
@@ -52,13 +53,8 @@ export default function ClassroomTab(props) {
     return (
       <div>
         <button className="backBtn" onClick={function () { props.onBack(); }}>Back to folders</button>
-        <div className="card">
-          <div className="lessonTop">
-            <strong style={{ fontSize:'1.1rem' }}>{lesson.title}</strong>
-            <span className={'levelTag ' + lesson.level}>{lesson.capstone ? 'finale' : lesson.level}</span>
-          </div>
-          <p className="lessonKey">Key {lesson.key} · {lesson.bpm} BPM{lesson.genre && lesson.genre !== 'any' ? ' · ' + lesson.genre : ''}</p>
-          <p className="lessonSummary">{lesson.summary}</p>
+        <div className="card sheetCard">
+          <LessonSheet lesson={lesson} />
           <LessonPictures lesson={lesson} />
           <LessonPlayer notes={lesson.notes} bpm={lesson.bpm}
             legend={lessonFile.legend} legendOrder={lessonFile.legendOrder} />

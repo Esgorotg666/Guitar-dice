@@ -31,20 +31,29 @@
 .levelRow { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 6px; }
 .learnNav { margin:0 0 8px; }
 .lessonStage { display:flex; gap:12px; align-items:stretch; }
-.lessonStage .boardScroll { flex:1; min-width:0; }
+.lessonStage .boardScroll { flex:1; min-width:0; background:#4a2f1c; border-radius:8px; }
+.lessonPlayer svg,
+.lessonPics svg,
+.boardScroll svg {
+  color: #f3efe6;
+  background: #4a2f1c;
+  display: block;
+  min-height: 160px;
+}
 .chordChart { flex:none; background:#14100c; border:1px solid #3a2c1c; border-radius:12px; padding:6px 6px 4px; text-align:center; }
 .nowPlaying { margin:0 0 10px; padding:8px 12px; border-radius:10px; background:#1a140c; border:1px solid #5a4520; color:#f0d37a; font-size:14px; }
 .nowPlaying b { color:#fff6d8; }
-.folderCard { border:1px solid #1e2a35; border-radius:12px; margin:8px 0; background:#0d1319; overflow:hidden; }
-.folderHead { width:100%; display:flex; justify-content:space-between; gap:10px; text-align:left; background:transparent; border:0; color:inherit; padding:12px 14px; }
+.folderCard { border:1px solid #2b3a48; border-radius:12px; margin:8px 0; background:#121820; overflow:hidden; }
+.folderHead { width:100%; display:flex; justify-content:space-between; gap:10px; text-align:left; background:transparent; border:0; color:#e6edf3; padding:12px 14px; }
 .folderHead small { display:block; color:#8b97a3; font-size:12px; margin-top:2px; }
 .folderMeta { color:#8b97a3; font-size:12px; flex:none; }
 .folderBody { border-top:1px solid #1e2a35; padding:8px; }
 .finaleItem { border-color:#5a4520; background:#16110a; }
+.lessonItem { color:#e6edf3 !important; }
 .lessonItem.cleared { border-color:#1f6b3d; }
 .lessonPics { margin:12px 0 14px; }
 .lessonPicFrame {
-  background: radial-gradient(120% 80% at 50% 0%, #3a2a1c 0%, #16110c 62%);
+  background: radial-gradient(120% 80% at 50% 0%, #6a452c 0%, #3a2418 62%);
   border: 1px solid #5a4528;
   border-radius: 14px;
   padding: 8px 6px 4px;

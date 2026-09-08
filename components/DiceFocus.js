@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { ALL_ROOTS } from '../lib/style';
-import { can } from '../lib/entitlements';
+import { can, bestTier } from '../lib/entitlements';
 
 export const MODE_CHOICES = [
   { id:'', label:'Any mode' },
@@ -13,7 +14,17 @@ export const MODE_CHOICES = [
 ];
 
 export default function DiceFocus(props) {
-  const tier = (props.usage && props.usage.tier) || 'free';
+  const usageTier = (props.usage && props.usage.tier) || 'free';
+  const [live, setLive] = useState(usageTier);
+  useEffect(function () {
+    var alive = true;
+    fetch('/api/billing/status', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (b) { if (alive) setLive(bestTier(usageTier, b && b.tier)); })
+      .catch(function () {});
+    return function () { alive = false; };
+  }, [usageTier]);
+  const tier = bestTier(usageTier, live);
   const paid = can(tier, 'lockKey');
   const key = props.rollKey || '';
   const mode = props.rollMode || '';
@@ -31,12 +42,12 @@ export default function DiceFocus(props) {
     <div className="card">
       <div className="rowBetween">
         <h3>Key and mode</h3>
-        {!paid ? <span className="tagBlue">Premium</span> : <span className="muted sm">Paid</span>}
+        {!paid ? <span className="tagBlue">Premium</span> : <span className="muted sm">Unlocked</span>}
       </div>
       <p className="muted sm">
         {paid
-          ? 'Leave these on Any and the dice still follow your genre. Lock one or both and every chord stays in that key and mode.'
-          : 'Free rolls pick a random key and a mode that fits your genre. Locking a key or a mode is on Premium and Extreme.'}
+          ? 'Leave on Any and the dice follow your genre. Lock a key or mode if you want every chord in that box.'
+          : 'Free rolls pick a random key. Locking a key or mode is on Premium and Extreme.'}
       </p>
       <span className="optLabel">Key signature</span>
       <div className="optRow">
@@ -52,7 +63,7 @@ export default function DiceFocus(props) {
         })}
       </div>
       {!paid ? (
-        <button className="btn primary wide" style={{ marginTop:12 }} onClick={props.onUpgrade}>See paid plans</button>
+        <button className="btn primary wide" style={{ marginTop:12 }} onClick={props.onUpgrade}>See plans</button>
       ) : null}
     </div>
   );

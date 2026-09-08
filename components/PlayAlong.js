@@ -78,7 +78,7 @@ export default function PlayAlong(props) {
     let buf = null;
     if (mode === 'mic') {
       if (typeof navigator === 'undefined' || !navigator.mediaDevices) {
-        setErr('This phone will not open a microphone. Use practice tap only — it does not pass the lesson.');
+        setErr('This phone will not open a microphone. Practice tap does not pass the lesson.');
         return;
       }
       try {
@@ -86,7 +86,7 @@ export default function PlayAlong(props) {
           audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false }
         });
       } catch (e) {
-        setErr('Allow the microphone. You have to play the guitar into the mic to pass this lesson.');
+        setErr('Mic is off. Turn it on to pass a lesson.');
         return;
       }
       const C = window.AudioContext || window.webkitAudioContext;
@@ -201,39 +201,49 @@ export default function PlayAlong(props) {
     raf = requestAnimationFrame(tick);
   }
 
+  var passLine = result && result.passed
+    ? result.score + '%. Next lesson is open.'
+    : result && result.practiceOnly
+      ? 'Practice hits do not pass the lesson.'
+      : result
+        ? result.score + '%. Slow it down and take the test again.'
+        : '';
+
   return (
     <div className="playAlong skillTest">
       <p className="optLabel" style={{ margin: '0 0 6px' }}>Skill test</p>
       <div className="rowBetween">
-        <h3>Play it on the guitar to move on</h3>
+        <h3>Play the lesson on a real guitar</h3>
         {phase === 'idle' || phase === 'done' ? (
-          <button className="btn primary sm" onClick={start}>{mode === 'mic' ? 'Start guitar test' : 'Practice tap'}</button>
+          <button className="btn primary sm" onClick={start}>{mode === 'mic' ? 'Start test' : 'Practice tap'}</button>
         ) : (
           <button className="btn danger sm" onClick={halt}>Cancel</button>
         )}
       </div>
       <p className="muted sm">
-        Guide track is quiet so the mic hears you. Play the guitar. {PASS_SCORE}% unlocks the next lesson.
+        Allow the mic. Wait for the count-in, then play. Guide track stays quiet. {PASS_SCORE}% opens the next lesson.
       </p>
       <div className="optRow">
-        <button className={'chipBtn' + (mode === 'mic' ? ' on' : '')} onClick={function () { setMode('mic'); }}>Guitar + mic (counts)</button>
+        <button className={'chipBtn' + (mode === 'mic' ? ' on' : '')} onClick={function () { setMode('mic'); }}>Guitar + mic</button>
         <button className={'chipBtn' + (mode === 'tap' ? ' on' : '')} onClick={function () { setMode('tap'); }}>Tap practice (no pass)</button>
       </div>
       {err ? <p className="warn">{err}</p> : null}
-      {phase === 'count' ? <p className="okText">Count-in… get the guitar ready.</p> : null}
+      {phase === 'count' ? <p className="okText">3 — 2 — 1 — play</p> : null}
       {phase === 'play' && mode === 'mic' ? (
-        <p className="okText">Listening to your guitar · {liveHits}/{total} · {heard}</p>
+        <p className="okText">Listening · {liveHits}/{total} · {heard}</p>
       ) : null}
       {phase === 'play' && mode === 'tap' ? (
         <button className="btn green wide" style={{ minHeight: 64, fontSize: '1.1rem' }} onClick={markTap}>
-          Tap practice · {liveHits}/{total}
+          Practice hits do not pass · {liveHits}/{total}
         </button>
       ) : null}
       {result ? (
         <div className={'pathResult' + (result.passed ? ' pass' : ' fail')}>
-          <strong>{result.practiceOnly ? 'Practice ' + result.score + '%' : (result.passed ? 'Passed — ' + result.score + '%' : result.score + '%')}</strong>
-          <span>{result.hits} of {result.total} {result.mode === 'mic' ? 'notes heard from the guitar' : 'practice taps'}</span>
-          <span>{result.practiceOnly ? 'Tap practice does not unlock the next lesson.' : (result.passed ? 'You played it. Next lesson is open.' : 'Need ' + PASS_SCORE + '% from the guitar mic.')}</span>
+          <strong>{passLine}</strong>
+          <span>{result.hits} of {result.total} {result.mode === 'mic' ? 'notes heard' : 'practice taps'}</span>
+          {result.score > 0 && result.score < PASS_SCORE && !result.practiceOnly ? (
+            <span>No clear note? Move closer and mute extra strings.</span>
+          ) : null}
         </div>
       ) : null}
     </div>

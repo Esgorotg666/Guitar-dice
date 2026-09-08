@@ -3,6 +3,7 @@ import { startLoop, CLICK_SOUNDS } from '../lib/audio';
 
 export default function LoopPlayer(props) {
   const chords = (props.chords || []).filter(Boolean);
+  const labels = props.labels || [];
   const [bpm, setBpm] = useState(90);
   const [bars, setBars] = useState(1);
   const [click, setClick] = useState(true);
@@ -31,7 +32,7 @@ export default function LoopPlayer(props) {
       if (!stop) { setRunning(false); setBlocked(true); return; }
       stopRef.current = stop;
     });
-  }, [running, bpm, bars, click, sound]);
+  }, [running, bpm, bars, click, sound, chords.map(function (c) { return c && c.key; }).join(',')]);
 
   function toggle() {
     if (running) { setRunning(false); hardStop(); return; }
@@ -46,12 +47,19 @@ export default function LoopPlayer(props) {
         <h3>{props.title || 'Loop player'}</h3>
         <button className={running ? 'btn danger' : 'btn green'} onClick={toggle}>{running ? 'Stop' : 'Start loop'}</button>
       </div>
-      <p className="muted sm">{props.subtitle || 'Loops the progression so you can solo over it. The chord playing right now lights up.'}</p>
+      <p className="muted sm">{props.subtitle || 'Play the changes. Rearrange the dice above, then start the loop again to hear the new order.'}</p>
       <div className="loopChords">
         {chords.map(function (c, i) {
-          return <span key={c.key + i} className={'loopChip' + (current === i ? ' on' : '')}>{c.name}</span>;
+          return (
+            <span key={(c.key || c.name) + i} className={'loopChip' + (current === i ? ' on' : '')}>
+              {labels[i] ? labels[i] + ' · ' : ''}{c.name}
+            </span>
+          );
         })}
       </div>
+      {props.onMove ? (
+        <p className="muted sm" style={{ marginTop:8 }}>Use Left / Right on each die to change the arrangement.</p>
+      ) : null}
       <div className="bpmRow" style={{ marginTop:14 }}>
         <button className="btn ghost sm" onClick={function () { setBpm(Math.max(40, bpm-5)); }}>-</button>
         <div className="bpmVal"><strong>{bpm}</strong><span>BPM</span></div>

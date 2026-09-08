@@ -76,7 +76,7 @@ export default function PlayAlong(props) {
           audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false }
         });
       } catch (e) {
-        setErr('Mic blocked. Switch to Tap timing — same 80% pass.');
+        setErr('Mic blocked. Switch to Tap timing — same ' + PASS_SCORE + '% pass.');
         return;
       }
       const C = window.AudioContext || window.webkitAudioContext;
@@ -187,15 +187,19 @@ export default function PlayAlong(props) {
   }
 
   return (
-    <div className="playAlong">
+    <div className="playAlong skillTest">
+      <p className="optLabel" style={{ margin: '0 0 6px' }}>Skill test</p>
       <div className="rowBetween">
-        <h3>Play along to pass</h3>
+        <h3>Test your skill to move on</h3>
         {phase === 'idle' || phase === 'done' ? (
-          <button className="btn primary sm" onClick={start}>Play along</button>
+          <button className="btn primary sm" onClick={start}>Start test</button>
         ) : (
           <button className="btn danger sm" onClick={halt}>Cancel</button>
         )}
       </div>
+      <p className="muted sm">
+        This is how you pass the lesson. Hear the part, play with it, score {PASS_SCORE}% or higher, and the next lesson in the folder unlocks.
+      </p>
       <div className="optRow">
         <button className={'chipBtn' + (mode === 'tap' ? ' on' : '')} onClick={function () { setMode('tap'); }}>
           Tap timing
@@ -206,8 +210,8 @@ export default function PlayAlong(props) {
       </div>
       <p className="muted sm">
         {mode === 'tap'
-          ? 'Four-click count-in, then the lesson plays. Tap the big button on every note or chord change. ' + PASS_SCORE + '% unlocks the next lesson.'
-          : 'You will hear the lesson after the count-in. Mic scores pitch in the beat window. Use tap if the room is loud.'}
+          ? 'Count-in, then the lesson plays. Tap the big button on every note or chord change.'
+          : 'Count-in, then the lesson plays. Mic scores pitch on each beat. Use tap if the room is loud.'}
       </p>
       {err ? <p className="warn">{err}</p> : null}
       {phase === 'count' ? <p className="okText">Count-in… lesson starts next.</p> : null}
@@ -216,14 +220,14 @@ export default function PlayAlong(props) {
       ) : null}
       {phase === 'play' && mode === 'tap' ? (
         <button className="btn green wide" style={{ minHeight: 64, fontSize: '1.1rem' }} onClick={markTap}>
-          Tap · {liveHits}/{total}
+          Tap with the lesson · {liveHits}/{total}
         </button>
       ) : null}
       {result ? (
         <div className={'pathResult' + (result.passed ? ' pass' : ' fail')}>
-          <strong>{result.score}%</strong>
+          <strong>{result.passed ? 'Passed — ' + result.score + '%' : result.score + '%'}</strong>
           <span>{result.hits} of {result.total} {result.mode === 'tap' ? 'taps in time' : 'notes in time'}</span>
-          <span>{result.gold ? 'Gold clear' : (result.passed ? 'Path unlocked' : 'Under ' + PASS_SCORE + '% — loop it slower and retry')}</span>
+          <span>{result.gold ? 'Gold clear. Next lesson is open.' : (result.passed ? 'You passed. Go back to the folder for the next lesson.' : 'Need ' + PASS_SCORE + '% to move on. Try again slower.')}</span>
         </div>
       ) : null}
     </div>

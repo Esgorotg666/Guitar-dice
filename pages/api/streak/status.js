@@ -1,4 +1,4 @@
-import { emptyStreak } from '../../../lib/streakStore';
+import { applyVisit, emptyStreak } from '../../../lib/streakStore';
 
 function readCookie(req, name) {
   const raw = String(req.headers.cookie || '');
@@ -10,14 +10,25 @@ function readCookie(req, name) {
   return '';
 }
 
+function cookie(name, value) {
+  return name + '=' + encodeURIComponent(String(value)) + '; Path=/; Max-Age=31536000; SameSite=Lax';
+}
+
 export default function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    return res.status(405).json({ message: 'GET only' });
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).json({ message: 'GET or POST' });
   }
-  const count = Number(readCookie(req, 'gd_streak')) || 0;
-  const lastDay = readCookie(req, 'gd_streak_day') || '';
-  const longest = Number(readCookie(req, 'gd_streak_best')) || count;
-  const body = count ? { currentStreak: count, lastDay: lastDay, longest: longest } : emptyStreak();
-  return res.status(200).json(body);
+  const prev = {
+    currentStreak: Number(readCookie(req, 'gd_streak')) || 0,
+    lastDay: readCookie(req, 'gd_streak_day') || '',
+    longest: Number(readCookie(req, 'gd_streak_best')) || 0
+  };
+  const next = applyVisit(prev || emptyStreak());
+  res.setHeader('Set-Cookie', [
+    cookie('gd_streak', next.currentStreak),
+    cookie('gd_streak_day', next.lastDay),
+    cookie('gd_streak_best', next.longest)
+  ]);
+  return res.status(200).json(next);
 }

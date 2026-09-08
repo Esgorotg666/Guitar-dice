@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ensureAudio, playClick } from '../lib/audio';
+import { ensureAudio, playClick, playSequence } from '../lib/audio';
 import { detectPitch, centsOff } from '../lib/pitch';
 import { GOLD_SCORE, PASS_SCORE, scheduleNotes } from '../lib/path';
 
@@ -97,6 +97,8 @@ export default function PlayAlong(props) {
     const t0 = performance.now() + 80;
     let raf = 0;
     let stopped = false;
+    let stopLesson = null;
+    let musicTimer = 0;
     setTotal(planned.length);
     setLiveHits(0);
     setPhase('count');
@@ -106,11 +108,19 @@ export default function PlayAlong(props) {
     }
     const musicStart = t0 + countIn * spb * 1000;
     musicStartRef.current = musicStart;
-    const endAt = musicStart + (planned[planned.length - 1].end + 0.35) * 1000;
+    const endAt = musicStart + (planned[planned.length - 1].end + 0.45) * 1000;
     const lastBeat = Math.ceil(planned[planned.length - 1].end / spb) + 1;
     for (let b = 0; b < lastBeat; b++) {
       playClick(c, c.currentTime + 0.05 + (countIn + b) * spb, b % 4 === 0, 'click');
     }
+
+    musicTimer = setTimeout(function () {
+      if (stopped) return;
+      playSequence(notes, bpm).then(function (stopFn) {
+        if (stopped) { if (stopFn) stopFn(); return; }
+        stopLesson = stopFn;
+      });
+    }, Math.max(0, musicStart - performance.now()));
 
     const tick = function () {
       if (stopped) return;
@@ -144,6 +154,8 @@ export default function PlayAlong(props) {
       if (stopped) return;
       stopped = true;
       cancelAnimationFrame(raf);
+      clearTimeout(musicTimer);
+      if (stopLesson) stopLesson();
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
       try { if (micCtx) micCtx.close(); } catch (e) {}
       const hitN = hits.filter(Boolean).length;
@@ -166,6 +178,8 @@ export default function PlayAlong(props) {
     stopRef.current = function () {
       stopped = true;
       cancelAnimationFrame(raf);
+      clearTimeout(musicTimer);
+      if (stopLesson) stopLesson();
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
       try { if (micCtx) micCtx.close(); } catch (e) {}
     };
@@ -192,11 +206,11 @@ export default function PlayAlong(props) {
       </div>
       <p className="muted sm">
         {mode === 'tap'
-          ? 'Count-in, then tap the big button on every note or chord change. Timing only. ' + PASS_SCORE + '% passes the node.'
-          : 'Mic scores pitch in the beat window. Use tap if the room is loud. 92% is gold.'}
+          ? 'Four-click count-in, then the lesson plays. Tap the big button on every note or chord change. ' + PASS_SCORE + '% unlocks the next lesson.'
+          : 'You will hear the lesson after the count-in. Mic scores pitch in the beat window. Use tap if the room is loud.'}
       </p>
       {err ? <p className="warn">{err}</p> : null}
-      {phase === 'count' ? <p className="okText">Count-in… get ready.</p> : null}
+      {phase === 'count' ? <p className="okText">Count-in… lesson starts next.</p> : null}
       {phase === 'play' && mode === 'mic' ? (
         <p className="okText">Listening · {liveHits}/{total} · {heard}</p>
       ) : null}

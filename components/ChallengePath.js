@@ -37,7 +37,7 @@ export default function ChallengePath(props) {
   const [openUnit, setOpenUnit] = useState(null);
   const byId = {};
   lessons.forEach(function (l) { byId[l.id] = l; });
-  const steps = pathFor(style).map(function (s) {
+  const steps = pathFor(style, props.skill).map(function (s) {
     const lesson = byId[s.id];
     return Object.assign({}, s, { lesson: lesson });
   }).filter(function (s) { return s.lesson; });
@@ -100,7 +100,6 @@ export default function ChallengePath(props) {
         <h3>Challenge path</h3>
         <p className="muted sm">
           Units run in order. Each header is a 12-minute session. Clear a node at {props.pass || 80}% to unlock the next one.
-          Paid gates still apply. Cosmetics unlock from clears — {clearCount(progress)} so far.
         </p>
         <div className="badgeRow">
           {BADGES.map(function (b) {

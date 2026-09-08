@@ -6,7 +6,7 @@ import { GOLD_SCORE, PASS_SCORE, scheduleNotes } from '../lib/path';
 export default function PlayAlong(props) {
   const notes = props.notes || [];
   const bpm = props.bpm || 80;
-  const [mode, setMode] = useState('tap');
+  const [mode, setMode] = useState('mic');
   const [phase, setPhase] = useState('idle');
   const [heard, setHeard] = useState('--');
   const [liveHits, setLiveHits] = useState(0);
@@ -29,7 +29,7 @@ export default function PlayAlong(props) {
   }
 
   function markTap() {
-    if (phase !== 'play') return;
+    if (phase !== 'play' || mode !== 'tap') return;
     const planned = plannedRef.current;
     const hits = hitsRef.current;
     const songT = (performance.now() - musicStartRef.current) / 1000;
@@ -68,7 +68,7 @@ export default function PlayAlong(props) {
     let buf = null;
     if (mode === 'mic') {
       if (typeof navigator === 'undefined' || !navigator.mediaDevices) {
-        setErr('No microphone here. Use Tap timing instead.');
+        setErr('This phone will not open a microphone. Use practice tap only — it does not pass the lesson.');
         return;
       }
       try {
@@ -76,7 +76,7 @@ export default function PlayAlong(props) {
           audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false }
         });
       } catch (e) {
-        setErr('Mic blocked. Switch to Tap timing — same ' + PASS_SCORE + '% pass.');
+        setErr('Allow the microphone. You have to play the guitar into the mic to pass this lesson.');
         return;
       }
       const C = window.AudioContext || window.webkitAudioContext;
@@ -136,8 +136,8 @@ export default function PlayAlong(props) {
           const songT = (now - musicStart) / 1000;
           planned.forEach(function (n, i) {
             if (hits[i] || f <= 0) return;
-            if (songT < n.start - 0.08 || songT > n.start + n.window) return;
-            if (Math.abs(centsOff(f, n.freq)) <= 55) {
+            if (songT < n.start - 0.12 || songT > n.start + n.window) return;
+            if (Math.abs(centsOff(f, n.freq)) <= 70) {
               hits[i] = true;
               setLiveHits(hits.filter(Boolean).length);
             }
@@ -160,19 +160,21 @@ export default function PlayAlong(props) {
       try { if (micCtx) micCtx.close(); } catch (e) {}
       const hitN = hits.filter(Boolean).length;
       const score = Math.round((hitN / planned.length) * 100);
+      const counts = mode === 'mic';
       const res = {
         score: score,
-        passed: score >= PASS_SCORE,
-        gold: score >= GOLD_SCORE,
+        passed: counts && score >= PASS_SCORE,
+        gold: counts && score >= GOLD_SCORE,
         hits: hitN,
         total: planned.length,
-        mode: mode
+        mode: mode,
+        practiceOnly: !counts
       };
       setResult(res);
       setLiveHits(hitN);
       setPhase('done');
       stopRef.current = null;
-      if (props.onResult) props.onResult(res);
+      if (counts && props.onResult) props.onResult(res);
     }
 
     stopRef.current = function () {
@@ -190,44 +192,52 @@ export default function PlayAlong(props) {
     <div className="playAlong skillTest">
       <p className="optLabel" style={{ margin: '0 0 6px' }}>Skill test</p>
       <div className="rowBetween">
-        <h3>Test your skill to move on</h3>
+        <h3>Play it on the guitar to move on</h3>
         {phase === 'idle' || phase === 'done' ? (
-          <button className="btn primary sm" onClick={start}>Start test</button>
+          <button className="btn primary sm" onClick={start}>{mode === 'mic' ? 'Start guitar test' : 'Practice tap'}</button>
         ) : (
           <button className="btn danger sm" onClick={halt}>Cancel</button>
         )}
       </div>
       <p className="muted sm">
-        This is how you pass the lesson. Hear the part, play with it, score {PASS_SCORE}% or higher, and the next lesson in the folder unlocks.
+        Hold the phone near the guitar. After the count-in you will hear the lesson. Play those notes or chords into the mic. {PASS_SCORE}% or higher unlocks the next lesson.
       </p>
       <div className="optRow">
-        <button className={'chipBtn' + (mode === 'tap' ? ' on' : '')} onClick={function () { setMode('tap'); }}>
-          Tap timing
-        </button>
         <button className={'chipBtn' + (mode === 'mic' ? ' on' : '')} onClick={function () { setMode('mic'); }}>
-          Mic pitch
+          Guitar + mic (counts)
+        </button>
+        <button className={'chipBtn' + (mode === 'tap' ? ' on' : '')} onClick={function () { setMode('tap'); }}>
+          Tap practice (no pass)
         </button>
       </div>
       <p className="muted sm">
-        {mode === 'tap'
-          ? 'Count-in, then the lesson plays. Tap the big button on every note or chord change.'
-          : 'Count-in, then the lesson plays. Mic scores pitch on each beat. Use tap if the room is loud.'}
+        {mode === 'mic'
+          ? 'Allow the microphone when Safari asks. Play the real guitar along with the audio.'
+          : 'Tap only trains timing. It will not pass the lesson or open the next one.'}
       </p>
       {err ? <p className="warn">{err}</p> : null}
-      {phase === 'count' ? <p className="okText">Count-in… lesson starts next.</p> : null}
+      {phase === 'count' ? <p className="okText">Count-in… get the guitar ready.</p> : null}
       {phase === 'play' && mode === 'mic' ? (
-        <p className="okText">Listening · {liveHits}/{total} · {heard}</p>
+        <p className="okText">Listening to your guitar · {liveHits}/{total} · {heard}</p>
       ) : null}
       {phase === 'play' && mode === 'tap' ? (
         <button className="btn green wide" style={{ minHeight: 64, fontSize: '1.1rem' }} onClick={markTap}>
-          Tap with the lesson · {liveHits}/{total}
+          Tap practice · {liveHits}/{total}
         </button>
       ) : null}
       {result ? (
         <div className={'pathResult' + (result.passed ? ' pass' : ' fail')}>
-          <strong>{result.passed ? 'Passed — ' + result.score + '%' : result.score + '%'}</strong>
-          <span>{result.hits} of {result.total} {result.mode === 'tap' ? 'taps in time' : 'notes in time'}</span>
-          <span>{result.gold ? 'Gold clear. Next lesson is open.' : (result.passed ? 'You passed. Go back to the folder for the next lesson.' : 'Need ' + PASS_SCORE + '% to move on. Try again slower.')}</span>
+          <strong>{result.practiceOnly ? 'Practice ' + result.score + '%' : (result.passed ? 'Passed — ' + result.score + '%' : result.score + '%')}</strong>
+          <span>{result.hits} of {result.total} {result.mode === 'mic' ? 'notes heard from the guitar' : 'practice taps'}</span>
+          <span>
+            {result.practiceOnly
+              ? 'Tap practice does not unlock the next lesson. Switch to Guitar + mic and play it.'
+              : (result.gold
+                ? 'Gold clear. Next lesson is open.'
+                : (result.passed
+                  ? 'You played it. Go back to the folder for the next lesson.'
+                  : 'Need ' + PASS_SCORE + '% from the guitar mic to move on.'))}
+          </span>
         </div>
       ) : null}
     </div>

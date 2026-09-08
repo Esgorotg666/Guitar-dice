@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { ensureAudio, playClick, playSequence } from '../lib/audio';
-import { detectPitchInfo, matchesAnyPitch } from '../lib/pitch';
+import { detectPitchInfo, matchesAnyPitch, CLARITY } from '../lib/pitch';
 import { GOLD_SCORE, PASS_SCORE, scheduleNotes } from '../lib/path';
+
+function windowMode(planned, songT) {
+  var i, n;
+  for (i = 0; i < planned.length; i++) {
+    n = planned[i];
+    if (songT < n.start - 0.12 || songT > n.start + n.window) continue;
+    if (n.role === 'chord' || (n.freqs && n.freqs.length > 2)) return 'chord';
+  }
+  return 'lead';
+}
 
 export default function PlayAlong(props) {
   const notes = props.notes || [];
@@ -131,12 +141,14 @@ export default function PlayAlong(props) {
         setPhase('play');
         if (mode === 'mic' && analyser) {
           analyser.getFloatTimeDomainData(buf);
-          const info = detectPitchInfo(buf, micCtx.sampleRate);
-          const f = info.freq;
-          if (f > 0 && info.clarity >= 0.75) setHeard(Math.round(f) + ' Hz');
           const songT = (now - musicStart) / 1000;
+          const kind = windowMode(planned, songT);
+          const info = detectPitchInfo(buf, micCtx.sampleRate, kind);
+          const f = info.freq;
+          const need = (CLARITY[kind] || CLARITY.lead).min;
+          if (f > 0 && info.clarity >= need) setHeard(Math.round(f) + ' Hz');
           planned.forEach(function (n, i) {
-            if (hits[i] || f <= 0 || info.clarity < 0.75) return;
+            if (hits[i] || f <= 0 || info.clarity < need) return;
             if (songT < n.start - 0.12 || songT > n.start + n.window) return;
             if (matchesAnyPitch(f, n.freqs || [n.freq], 70)) {
               hits[i] = true;
@@ -201,15 +213,11 @@ export default function PlayAlong(props) {
         )}
       </div>
       <p className="muted sm">
-        Guide track is quiet on purpose so the mic hears you. Play the guitar into the phone. {PASS_SCORE}% unlocks the next lesson.
+        Guide track is quiet so the mic hears you. Play the guitar. {PASS_SCORE}% unlocks the next lesson.
       </p>
       <div className="optRow">
-        <button className={'chipBtn' + (mode === 'mic' ? ' on' : '')} onClick={function () { setMode('mic'); }}>
-          Guitar + mic (counts)
-        </button>
-        <button className={'chipBtn' + (mode === 'tap' ? ' on' : '')} onClick={function () { setMode('tap'); }}>
-          Tap practice (no pass)
-        </button>
+        <button className={'chipBtn' + (mode === 'mic' ? ' on' : '')} onClick={function () { setMode('mic'); }}>Guitar + mic (counts)</button>
+        <button className={'chipBtn' + (mode === 'tap' ? ' on' : '')} onClick={function () { setMode('tap'); }}>Tap practice (no pass)</button>
       </div>
       {err ? <p className="warn">{err}</p> : null}
       {phase === 'count' ? <p className="okText">Count-in… get the guitar ready.</p> : null}
@@ -225,11 +233,7 @@ export default function PlayAlong(props) {
         <div className={'pathResult' + (result.passed ? ' pass' : ' fail')}>
           <strong>{result.practiceOnly ? 'Practice ' + result.score + '%' : (result.passed ? 'Passed — ' + result.score + '%' : result.score + '%')}</strong>
           <span>{result.hits} of {result.total} {result.mode === 'mic' ? 'notes heard from the guitar' : 'practice taps'}</span>
-          <span>
-            {result.practiceOnly
-              ? 'Tap practice does not unlock the next lesson.'
-              : (result.passed ? 'You played it. Next lesson is open.' : 'Need ' + PASS_SCORE + '% from the guitar mic.')}
-          </span>
+          <span>{result.practiceOnly ? 'Tap practice does not unlock the next lesson.' : (result.passed ? 'You played it. Next lesson is open.' : 'Need ' + PASS_SCORE + '% from the guitar mic.')}</span>
         </div>
       ) : null}
     </div>

@@ -3,6 +3,39 @@ import { THEORY_GUIDES } from '../lib/theoryGuides';
 import { TECH_GUIDES } from '../lib/techGuides';
 import { guideLockedReason } from '../lib/entitlements';
 import { fetchAppTier } from '../lib/resolveTier';
+import LessonPlayer from './LessonPlayer';
+
+function demoNotes(id) {
+  if (id === 'th-notes' || id === 'th-major') {
+    return [
+      { string:4, fret:1, beats:0.5, pick:'D', group:0, role:'line', groupLabel:'C major' },
+      { string:4, fret:3, beats:0.5, pick:'U', group:0, role:'line' },
+      { string:5, fret:0, beats:0.5, pick:'D', group:0, role:'line' },
+      { string:5, fret:1, beats:0.5, pick:'U', group:0, role:'line' },
+      { string:5, fret:3, beats:0.5, pick:'D', group:0, role:'line' },
+      { string:5, fret:5, beats:0.5, pick:'U', group:0, role:'line' },
+      { string:5, fret:7, beats:0.5, pick:'D', group:0, role:'line' },
+      { string:5, fret:8, beats:1, pick:'U', group:0, role:'line' }
+    ];
+  }
+  if (id === 'th-intervals' || id === 'th-chords') {
+    return [
+      { string:0, fret:0, beats:1, pick:'D', group:0, role:'line', groupLabel:'Root E' },
+      { string:0, fret:3, beats:1, pick:'D', group:1, role:'line', groupLabel:'Minor 3rd' },
+      { string:0, fret:4, beats:1, pick:'D', group:2, role:'line', groupLabel:'Major 3rd' },
+      { string:0, fret:7, beats:1, pick:'D', group:3, role:'line', groupLabel:'Fifth' }
+    ];
+  }
+  if (id === 'th-circle' || id === 'th-diatonic') {
+    return [
+      { string:0, fret:3, beats:1, pick:'D', group:0, role:'line', groupLabel:'G' },
+      { string:1, fret:3, beats:1, pick:'D', group:1, role:'line', groupLabel:'C' },
+      { string:1, fret:5, beats:1, pick:'D', group:2, role:'line', groupLabel:'D' },
+      { string:0, fret:3, beats:1, pick:'D', group:3, role:'line', groupLabel:'G home' }
+    ];
+  }
+  return null;
+}
 
 function groupGuides(list) {
   const order = [];
@@ -28,6 +61,7 @@ export default function GuideShelf(props) {
 
   if (open) {
     const gate = guideLockedReason(open, tier);
+    const demo = open.notes || demoNotes(open.id);
     return (
       <div>
         <button className="backBtn" onClick={function () { setOpenId(null); }}>Back to {kind === 'tech' ? 'tech' : 'theory'}</button>
@@ -46,6 +80,12 @@ export default function GuideShelf(props) {
             <div>
               <ol className="stepList">{(open.steps || []).map(function (s, i) { return <li key={i}>{s}</li>; })}</ol>
               {open.watchFor ? <div className="watchFor"><strong>Watch for</strong>{open.watchFor}</div> : null}
+              {demo ? (
+                <div style={{ marginTop:16 }}>
+                  <p className="muted sm">Play this on the board. This page is not only text.</p>
+                  <LessonPlayer notes={demo} bpm={open.bpm || 72} />
+                </div>
+              ) : null}
               {kind === 'tech' ? (
                 <p className="muted sm" style={{ marginTop:14 }}>
                   This is setup and wiring education for your own instrument. Unplug first. If a rod, knife edge, or solder joint feels wrong, stop and take it to a bench.
@@ -65,8 +105,8 @@ export default function GuideShelf(props) {
         <h3>{kind === 'tech' ? 'Guitar tech' : 'Music theory'}</h3>
         <p className="muted sm">
           {kind === 'tech'
-            ? 'Setup, tuning stability, Floyd Rose, pickup height, pots, toggles, and EMG. Extreme unlocks every page.'
-            : 'Notes through secondary dominants and tritone subs. Extreme unlocks every page.'}
+            ? 'Setup, tuning stability, Floyd Rose, pickup height, pots, toggles, and EMG. Open a page and work the steps on your own guitar.'
+            : 'Notes, intervals, scales, chords, circle of fifths, modes, ii-V-I, and jazz harmony. Open a page — foundations include a playable fretboard example.'}
         </p>
       </div>
       {groups.map(function (g) {

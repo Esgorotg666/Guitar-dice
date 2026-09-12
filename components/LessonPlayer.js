@@ -103,49 +103,64 @@ export default function LessonPlayer(props) {
     setPlaying(false); setActive(0);
   }
 
+  function playableNotes(list) {
+    return (list || []).filter(function (n) {
+      return n && n.string != null && n.fret != null && Number.isFinite(Number(n.string)) && Number.isFinite(Number(n.fret));
+    });
+  }
+
   async function toggle() {
     if (playing) {
       halt();
       return;
     }
+    const seq = playableNotes(notes);
+    if (!seq.length && !chordMode) {
+      setBlocked(true);
+      return;
+    }
     setPlaying(true); setBlocked(false);
-    if (grouped) {
-      const noteIndexToGroup = [];
-      notes.forEach(function (n, i) {
-        var gi = 0;
-        groups.forEach(function (g, idx) { if (g.id === n.group) gi = idx; });
-        noteIndexToGroup[i] = gi;
-      });
-      const stop = await playSequence(notes, bpm,
-        function (i) {
-          if (i < 0) return;
-          setActive(noteIndexToGroup[i] || 0);
-        },
+    try {
+      if (grouped) {
+        const noteIndexToGroup = [];
+        seq.forEach(function (n, i) {
+          var gi = 0;
+          groups.forEach(function (g, idx) { if (g.id === n.group) gi = idx; });
+          noteIndexToGroup[i] = gi;
+        });
+        const stop = await playSequence(seq, bpm,
+          function (i) {
+            if (i < 0) return;
+            setActive(noteIndexToGroup[i] || 0);
+          },
+          function (ok) { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); });
+        if (!stop) { setPlaying(false); setBlocked(true); return; }
+        stopRef.current = stop;
+        return;
+      }
+      if (chordMode) {
+        setActive(0);
+        const gap = Math.round((60 / bpm) * 4 * 1000);
+        const ok = await playProgressionChords(shapes, gap);
+        if (!ok) { setPlaying(false); setBlocked(true); return; }
+        const timers = [];
+        shapes.forEach(function (_, i) {
+          timers.push(setTimeout(function () { setActive(i); }, i * gap));
+        });
+        timers.push(setTimeout(function () {
+          setPlaying(false); setActive(0); stopRef.current = null;
+        }, shapes.length * gap));
+        stopRef.current = function () { timers.forEach(clearTimeout); };
+        return;
+      }
+      const stop = await playSequence(seq, bpm,
+        function (i) { setActive(i); },
         function (ok) { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); });
       if (!stop) { setPlaying(false); setBlocked(true); return; }
       stopRef.current = stop;
-      return;
+    } catch (e) {
+      setPlaying(false); setBlocked(true); stopRef.current = null;
     }
-    if (chordMode) {
-      setActive(0);
-      const gap = Math.round((60 / bpm) * 4 * 1000);
-      const ok = await playProgressionChords(shapes, gap);
-      if (!ok) { setPlaying(false); setBlocked(true); return; }
-      const timers = [];
-      shapes.forEach(function (_, i) {
-        timers.push(setTimeout(function () { setActive(i); }, i * gap));
-      });
-      timers.push(setTimeout(function () {
-        setPlaying(false); setActive(0); stopRef.current = null;
-      }, shapes.length * gap));
-      stopRef.current = function () { timers.forEach(clearTimeout); };
-      return;
-    }
-    const stop = await playSequence(notes, bpm,
-      function (i) { setActive(i); },
-      function (ok) { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); });
-    if (!stop) { setPlaying(false); setBlocked(true); return; }
-    stopRef.current = stop;
   }
 
   function setTempo(v) {
@@ -164,23 +179,23 @@ export default function LessonPlayer(props) {
   function pickGlyph(p) { return p === 'U' ? 'V' : (p === 'T' ? 'T' : 'M'); }
   const heading = grouped && currentGroup
     ? currentGroup.label
-    : (chordMode && shapes[Math.max(0, active)] ? (shapes[Max(0, active)].name || shapes[Math.max(0, active)].key) : null);
+    : (chordMode && shapes[Math.max(0, active)] ? (shapes[Math.max(0, active)].name || shapes[Math.max(0, active)].key) : null);
   const isLine = grouped && currentGroup && currentGroup.role === 'line';
 
   return (
-    <div className=\"lessonPlayer\">
+    <div className="lessonPlayer">
       {heading ? (
-        <p className=\"nowPlaying\">
+        <p className="nowPlaying">
           {isLine
-            ? <span>Now: connecting line \u2014 <b>{heading}</b>. Play the numbered notes in order.</span>
+            ? <span>Now: connecting line — <b>{heading}</b>. Play the numbered notes in order.</span>
             : <span>Now: hold all dots of <b>{heading}</b> together. This is one chord, not one string at a time.</span>}
         </p>
       ) : null}
-      <div className=\"lessonStage\">
+      <div className="lessonStage">
         {chartChord ? <ChordDiagram chord={chartChord} /> : null}
-        <div className=\"boardScroll\" ref={scrollRef}>
-          <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role=\"img\" aria-label=\"Lesson fretboard\">
-            <rect x={padL} y={padT} width={gw} height={gh} fill=\"#3a2418\" rx={4} />
+        <div className="boardScroll" ref={scrollRef}>
+          <svg viewBox={'0 0 ' + W + ' ' + H} width={W} style={{ minWidth:'100%' }} role="img" aria-label="Lesson fretboard">
+            <rect x={padL} y={padT} width={gw} height={gh} fill="#3a2418" rx={4} />
             <InlayLayer guitar={props.guitar} padL={padL} padT={padT} dx={dx} gh={gh} frets={frets} />
             {Array.from({ length:frets+1 }).map(function (_, f) {
               return <line key={'fr'+f} x1={padL+dx*f} y1={padT} x2={padL+dx*f} y2={padT+gh} stroke={f===0?'#f3efe6':'#6a4e36'} strokeWidth={f===0?4:1.2} />;
@@ -188,8 +203,8 @@ export default function LessonPlayer(props) {
             {STRINGS.map(function (nm, s) {
               return (
                 <g key={'st'+s}>
-                  <line x1={padL} y1={padT+dy*s} x2={padL+gw} y2={padT+dy*s} stroke=\"#d7c7a2\" strokeWidth={0.9+s*0.25} />
-                  <text x={padL-24} y={padT+dy*s+4} fontSize={13} fill=\"#e8dcc8\" fontWeight={600}>{nm}</text>
+                  <line x1={padL} y1={padT+dy*s} x2={padL+gw} y2={padT+dy*s} stroke="#d7c7a2" strokeWidth={0.9+s*0.25} />
+                  <text x={padL-24} y={padT+dy*s+4} fontSize={13} fill="#e8dcc8" fontWeight={600}>{nm}</text>
                 </g>
               );
             })}
@@ -205,19 +220,19 @@ export default function LessonPlayer(props) {
                 <g key={'n'+i+'-'+n.string+'-'+n.fret+'-'+(n.group||'x')}>
                   {!holdAll && n.pick ? (
                     <text x={cx} y={cy-16} fontSize={on?13:11} fill={on?'#ffc65c':'#e8dcc8'}
-                      textAnchor=\"middle\" fontWeight={800}>{pickGlyph(n.pick)}</text>
+                      textAnchor="middle" fontWeight={800}>{pickGlyph(n.pick)}</text>
                   ) : null}
                   <circle cx={cx} cy={cy} r={on?14:11} fill={on?'#ffc65c':'#7dffa8'} stroke={on?'#fff2d4':'#14532d'} strokeWidth={on?3:1.5} />
-                  <text x={cx} y={cy+4} fontSize={on?11:10} fill=\"#1f1503\" textAnchor=\"middle\" fontWeight={800}>
+                  <text x={cx} y={cy+4} fontSize={on?11:10} fill="#1f1503" textAnchor="middle" fontWeight={800}>
                     {label}
                   </text>
                   {holdAll ? (
-                    <text x={cx} y={cy+22} fontSize={9} fill=\"#f0d37a\" textAnchor=\"middle\" fontWeight={700}>
+                    <text x={cx} y={cy+22} fontSize={9} fill="#f0d37a" textAnchor="middle" fontWeight={700}>
                       {noteAt(n.string, n.fret)}
                     </text>
                   ) : null}
                   {!holdAll && tech.length ? (
-                    <text x={cx} y={cy+24} fontSize={9} fill={on?'#ffc65c':'#e8dcc8'} textAnchor=\"middle\" fontWeight={700}>
+                    <text x={cx} y={cy+24} fontSize={9} fill={on?'#ffc65c':'#e8dcc8'} textAnchor="middle" fontWeight={700}>
                       {tech.join(' ')}
                     </text>
                   ) : null}
@@ -228,7 +243,7 @@ export default function LessonPlayer(props) {
               const marked = f === 0 || SINGLE_INLAYS.indexOf(f) !== -1 || DOUBLE_INLAYS.indexOf(f) !== -1;
               return (
                 <text key={'fn'+f} x={f===0?padL-11:padL+dx*(f-0.5)} y={H-8}
-                  fontSize={marked?13:11} fill={marked?'#f0d37a':'#cbb48a'} textAnchor=\"middle\" fontWeight={marked?700:400}>
+                  fontSize={marked?13:11} fill={marked?'#f0d37a':'#cbb48a'} textAnchor="middle" fontWeight={marked?700:400}>
                   {f === 0 ? 'open' : f}
                 </text>
               );
@@ -238,10 +253,10 @@ export default function LessonPlayer(props) {
       </div>
 
       {shown.length ? (
-        <div className=\"pickLegend\">
+        <div className="pickLegend">
           {shown.map(function (k) {
             return (
-              <span key={k} className=\"pickItem\">
+              <span key={k} className="pickItem">
                 <b>{k === 'D' ? 'M' : (k === 'U' ? 'V' : k)}</b>{legend[k] || k}
               </span>
             );
@@ -249,24 +264,24 @@ export default function LessonPlayer(props) {
         </div>
       ) : null}
 
-      <div className=\"playRow\">
+      <div className="playRow">
         <button className={playing ? 'btn danger' : 'btn primary'} onClick={toggle}>{playing ? 'Stop' : 'Hear it'}</button>
-        <div className=\"tempoBox\">
-          <button className=\"btn ghost sm\" onClick={function () { setTempo(bpm - 5); }}>-</button>
-          <span className=\"tempoVal\"><b>{bpm}</b> BPM{pct !== 100 ? <i>{pct}%</i> : null}</span>
-          <button className=\"btn ghost sm\" onClick={function () { setTempo(bpm + 5); }}>+</button>
+        <div className="tempoBox">
+          <button className="btn ghost sm" onClick={function () { setTempo(bpm - 5); }}>-</button>
+          <span className="tempoVal"><b>{bpm}</b> BPM{pct !== 100 ? <i>{pct}%</i> : null}</span>
+          <button className="btn ghost sm" onClick={function () { setTempo(bpm + 5); }}>+</button>
         </div>
       </div>
-      <input className=\"slider\" type=\"range\" min={30} max={220} value={bpm}
+      <input className="slider" type="range" min={30} max={220} value={bpm}
         onChange={function (e) { setTempo(Number(e.target.value)); }} />
-      <div className=\"tempoPresets\">
-        <button className=\"chipBtn\" onClick={function () { setTempo(Math.round(baseBpm*0.5)); }}>Half speed</button>
-        <button className=\"chipBtn\" onClick={function () { setTempo(Math.round(baseBpm*0.75)); }}>75%</button>
-        <button className=\"chipBtn\" onClick={function () { setTempo(baseBpm); }}>Written tempo</button>
+      <div className="tempoPresets">
+        <button className="chipBtn" onClick={function () { setTempo(Math.round(baseBpm*0.5)); }}>Half speed</button>
+        <button className="chipBtn" onClick={function () { setTempo(Math.round(baseBpm*0.75)); }}>75%</button>
+        <button className="chipBtn" onClick={function () { setTempo(baseBpm); }}>Written tempo</button>
       </div>
 
-      {blocked ? <p className=\"warn\">No sound? On iPhone, flick the silent switch to ring mode, turn the volume up, then tap Hear it again.</p> : null}
-      <div className=\"tabStrip\">
+      {blocked ? <p className="warn">No sound? On iPhone, flick the silent switch to ring mode, turn the volume up, then tap Hear it again.</p> : null}
+      <div className="tabStrip">
         {grouped ? groups.map(function (g, i) {
           return (
             <span key={g.id} className={'tabNote' + (active === i ? ' on' : '')} onClick={function () { setActive(i); }}>

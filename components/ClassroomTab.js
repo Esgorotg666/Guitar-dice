@@ -27,6 +27,22 @@ function resolveLesson(picked, fromParent, list) {
   return raw;
 }
 
+function logComplete(lesson, style, res) {
+  fetch('/api/lessons/complete', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      lessonId: lesson && lesson.id,
+      title: lesson && lesson.title,
+      style: style,
+      level: lesson && lesson.level,
+      score: res && res.score,
+      passed: !!(res && res.passed)
+    })
+  }).catch(function () {});
+}
+
 export default function ClassroomTab(props) {
   const lessons = props.lessons || [];
   const data = props.data;
@@ -108,6 +124,7 @@ export default function ClassroomTab(props) {
           <PlayAlong notes={lesson.notes} bpm={lesson.bpm} onResult={function (res) {
             const next = recordAttempt(progress, lesson.id, style, res.score);
             setProgress(next);
+            logComplete(lesson, style, res);
           }} />
           <button className="btn ghost wide" style={{ marginTop: 10 }} onClick={function () { setShowSteps(!showSteps); }}>
             {showSteps ? 'Hide steps' : 'How to practice this'}

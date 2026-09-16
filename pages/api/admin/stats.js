@@ -4,6 +4,7 @@ import { familyEmails, familyGrantFor } from '../../../lib/familyGrant';
 import { readPromoGrant } from '../../../lib/promoCodes';
 import { bestTier } from '../../../lib/entitlements';
 import { readTraffic } from '../../../lib/siteTraffic';
+import { LESSON_EVENTS_SQL, readLessonEvents } from '../../../lib/lessonEvents';
 
 const SUPA = 'https://fjwkfqmyfufulwjecjlf.supabase.co';
 
@@ -128,12 +129,19 @@ export default async function handler(req, res) {
     stripePack = await listStripeCustomers();
   } catch (e) {}
   const idx = indexCustomers(stripePack.list);
+  const lessons = await readLessonEvents(300);
 
   const users = rows.map(function (row) {
     const email = String(row.email || '').trim().toLowerCase();
     const username = String(row.username || '').trim().toLowerCase();
     const customer = idx.byEmail[email] || idx.byUser[username] || null;
-    return Object.assign({}, row, classify(row, customer));
+    const act = lessons.byEmail[email] || { attempts: 0, passed: 0, lastAt: null, lastTitle: '' };
+    return Object.assign({}, row, classify(row, customer), {
+      attempts: act.attempts,
+      passed: act.passed,
+      lastLessonAt: act.lastAt || null,
+      lastLesson: act.lastTitle || ''
+    });
   });
 
   const counts = { free: 0, promo: 0, paid: 0, family: 0 };
@@ -152,6 +160,11 @@ export default async function handler(req, res) {
     stripeHasMore: !!stripePack.hasMore,
     stripeLive: !!stripePack.live,
     traffic: traffic,
+    lessons: {
+      reason: lessons.reason || '',
+      recent: (lessons.events || []).slice(0, 20),
+      sql: lessons.reason === 'no-table' ? LESSON_EVENTS_SQL : ''
+    },
     authError: authError || '',
     admin: user.username || user.email
   });

@@ -44,3 +44,23 @@
 }
 .lessonLineItem strong { display: block; }
 .lessonLineItem p { margin: 4px 0 0; color: #8b97a3; font-size: .82rem; }
+
+/* ---- scale die: pick a scale, hear it as a random phrase ---- */
+.scaleDie {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #1e2a35;
+}
+.scaleDie .optRow { max-height: 132px; overflow-y: auto; }
+.scaleDie .playRow { margin-top: 14px; }
+.scaleDie .deg,
+.diceTray .deg {
+  display: inline-block;
+  background: #10161d;
+  border: 1px solid #2b3a48;
+  color: #c3ced9;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: .8rem;
+  margin: 0 5px 5px 0;
+}

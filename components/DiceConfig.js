@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FACES, FACE_ORDER, facesForTier, nextFace, matchLessons } from '../lib/diceFaces';
+import { scaleMenu, findScale, SCALE_ROOTS, randomScalePattern } from '../lib/scaleRun';
+import { playSequence } from '../lib/audio';
 
 const STORE = 'gd-dice-slots-v2';
+const SCALE_STORE = 'gd-dice-scale-v1';
 
 function loadSaved(fallback) {
   if (typeof window === 'undefined') return fallback || [];
@@ -15,6 +18,18 @@ function loadSaved(fallback) {
 
 function saveSlots(slots) {
   try { window.localStorage.setItem(STORE, JSON.stringify(slots)); } catch (e) {}
+}
+
+function loadScalePick() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(SCALE_STORE);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveScalePick(root, id) {
+  try { window.localStorage.setItem(SCALE_STORE, JSON.stringify({ root:root, id:id })); } catch (e) {}
 }
 
 function Pips(props) {
@@ -37,6 +52,19 @@ export default function DiceConfig(props) {
   const nums = [];
   for (let i = 2; i <= max; i++) nums.push(i);
 
+  const saved = loadScalePick();
+  const [modes, setModes] = useState(props.modes || []);
+  const [scaleRoot, setScaleRoot] = useState((saved && saved.root) || 'A');
+  const [scaleId, setScaleId] = useState((saved && saved.id) || 'minor-pentatonic');
+  const [pattern, setPattern] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [bpm, setBpm] = useState(90);
+  const [audioWarn, setAudioWarn] = useState(false);
+  const stopRef = useRef(null);
+
+  const menu = scaleMenu(modes);
+  const chosen = findScale(menu, scaleId);
+
   const shown = slots.slice(0, count);
   while (shown.length < count) shown.push('chord');
   const line = matchLessons(lessons, shown, props.genre);
@@ -48,6 +76,17 @@ export default function DiceConfig(props) {
       setOwnLessons((d && d.lessons) || []);
     }).catch(function () {});
   }, [props.lessons]);
+
+  useEffect(function () {
+    if (props.modes && props.modes.length) { setModes(props.modes); return; }
+    fetch('/data/musicdata.json').then(function (r) { return r.json(); }).then(function (d) {
+      setModes((d && d.modes) || []);
+    }).catch(function () {});
+  }, [props.modes]);
+
+  useEffect(function () {
+    return function () { if (stopRef.current) stopRef.current(); };
+  }, []);
 
   function commit(next) {
     setSlots(next);
@@ -71,6 +110,42 @@ export default function DiceConfig(props) {
     const next = shown.slice();
     next[i] = id;
     commit(next);
+  }
+
+  function chooseScale(root, id) {
+    setScaleRoot(root);
+    setScaleId(id);
+    saveScalePick(root, id);
+    setPattern(null);
+    if (stopRef.current) { stopRef.current(); stopRef.current = null; setPlaying(false); }
+  }
+
+  function rollScaleDie() {
+    const root = SCALE_ROOTS[Math.floor(Math.random() * SCALE_ROOTS.length)];
+    const s = menu[Math.floor(Math.random() * menu.length)];
+    chooseScale(root, s.id);
+  }
+
+  async function playPattern() {
+    if (playing) {
+      if (stopRef.current) stopRef.current();
+      stopRef.current = null;
+      setPlaying(false);
+      return;
+    }
+    if (!chosen) return;
+    const res = randomScalePattern(scaleRoot, chosen, { bars: 4 });
+    setPattern(res);
+    if (!res.notes.length) return;
+    setPlaying(true);
+    setAudioWarn(false);
+    const stop = await playSequence(res.notes, bpm, null, function (ok) {
+      setPlaying(false);
+      stopRef.current = null;
+      if (!ok) setAudioWarn(true);
+    });
+    if (!stop) { setPlaying(false); setAudioWarn(true); return; }
+    stopRef.current = stop;
   }
 
   return (
@@ -129,6 +204,69 @@ export default function DiceConfig(props) {
           );
         })}
       </div>
+
+      <div className="scaleDie">
+        <div className="rowBetween" style={{ marginTop: 18 }}>
+          <span className="optLabel" style={{ margin: 0 }}>Scale</span>
+          <button type="button" className="btn ghost sm" onClick={rollScaleDie}>Roll a scale</button>
+        </div>
+        <p className="muted sm" style={{ marginTop: 4 }}>
+          Pick a scale, then hear it as a different random phrase every time. Practising a scale
+          in a shape you cannot predict is what turns it from a pattern into something you actually know.
+        </p>
+
+        <span className="optLabel">Root</span>
+        <div className="optRow">
+          {SCALE_ROOTS.map(function (r) {
+            return (
+              <button key={r} type="button" className={'chipBtn' + (scaleRoot === r ? ' on' : '')}
+                onClick={function () { chooseScale(r, scaleId); }}>{r}</button>
+            );
+          })}
+        </div>
+
+        <span className="optLabel">Scale</span>
+        <div className="optRow">
+          {menu.map(function (s) {
+            return (
+              <button key={s.id} type="button" className={'chipBtn' + (scaleId === s.id ? ' on' : '')}
+                onClick={function () { chooseScale(scaleRoot, s.id); }}>{s.name}</button>
+            );
+          })}
+        </div>
+
+        {chosen ? (
+          <div className="howto" style={{ marginTop: 10 }}>
+            <b>{scaleRoot} {chosen.name}</b>
+            {chosen.description ? ' — ' + chosen.description : ''}
+            {chosen.degrees && chosen.degrees.length ? (
+              <div className="degRow" style={{ marginTop: 8 }}>
+                {chosen.degrees.map(function (dg) { return <span key={dg} className="deg">{dg}</span>; })}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="playRow">
+          <button type="button" className={playing ? 'btn danger' : 'btn primary'} onClick={playPattern}>
+            {playing ? 'Stop' : 'Play a random phrase'}
+          </button>
+          <div className="tempoBox">
+            <button type="button" className="btn ghost sm" onClick={function () { setBpm(Math.max(50, bpm - 5)); }}>-</button>
+            <span className="tempoVal"><b>{bpm}</b> BPM</span>
+            <button type="button" className="btn ghost sm" onClick={function () { setBpm(Math.min(180, bpm + 5)); }}>+</button>
+          </div>
+        </div>
+
+        {pattern && pattern.devices.length ? (
+          <p className="muted sm" style={{ marginTop: 8 }}>
+            That phrase used: {pattern.devices.join(', ')} — {pattern.notes.length} notes, landing on {scaleRoot}.
+            Press again for a different one.
+          </p>
+        ) : null}
+        {audioWarn ? <p className="warn">No sound? On iPhone the side silent switch mutes web audio — flick it to ring and try again.</p> : null}
+      </div>
+
       {line.length ? (
         <div className="lessonLine">
           <span className="optLabel">Lesson line</span>

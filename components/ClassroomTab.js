@@ -152,6 +152,7 @@ export default function ClassroomTab(props) {
           lessons={lessons}
           progress={progress}
           pass={PASS_SCORE}
+          tier={tier}
           onOpen={openLesson}
           onUpgrade={props.onUpgrade}
         />

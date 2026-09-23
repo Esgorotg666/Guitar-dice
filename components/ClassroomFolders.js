@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { UNITS, groupByUnit, filterLessons, levelAllowed, LEVELS } from '../lib/lessonCatalog';
-import { lessonLockedReason, maxLessonLevel } from '../lib/entitlements';
+import { lessonLockedReason, maxLessonLevel, hasTier } from '../lib/entitlements';
 import { isCleared } from '../lib/pathProgress';
 
 const LEVEL_HINT = {
@@ -14,8 +14,9 @@ export default function ClassroomFolders(props) {
   const all = props.lessons || [];
   const tier = props.tier || 'free';
   const progress = props.progress || { clears: {} };
+  const fullAccess = hasTier(tier, 'extreme');
   const allowedMax = maxLessonLevel(tier);
-  const [level, setLevel] = useState(allowedMax === 'master' ? 'entry' : 'entry');
+  const [level, setLevel] = useState('entry');
   const [openId, setOpenId] = useState('');
 
   const atLevel = useMemo(function () {
@@ -34,11 +35,13 @@ export default function ClassroomFolders(props) {
   return (
     <div className="classFolders">
       <p className="muted sm" style={{ margin: '0 0 8px' }}>
-        Pick a level. Open one folder. Finish those lessons. Then play the finale.
+        {fullAccess
+          ? 'Owner Extreme: every level, folder, and finale is open.'
+          : 'Pick a level. Open one folder. Finish those lessons. Then play the finale.'}
       </p>
       <div className="levelRow">
         {LEVELS.map(function (lv) {
-          const ok = levelAllowed(lv, tier);
+          const ok = fullAccess || levelAllowed(lv, tier);
           return (
             <button
               key={lv}
@@ -55,7 +58,7 @@ export default function ClassroomFolders(props) {
       </div>
       {groups.map(function (g) {
         const open = openId === g.unit.id;
-        const capReady = g.drills.length > 0 && g.done >= Math.max(1, g.drills.length);
+        const capReady = fullAccess || (g.drills.length > 0 && g.done >= Math.max(1, g.drills.length));
         return (
           <div key={g.unit.id} className="folderCard">
             <button className="folderHead" onClick={function () { setOpenId(open ? '' : g.unit.id); }}>
@@ -68,7 +71,7 @@ export default function ClassroomFolders(props) {
             {open ? (
               <div className="folderBody">
                 {g.drills.map(function (l) {
-                  const gate = lessonLockedReason(l, tier);
+                  const gate = fullAccess ? null : lessonLockedReason(l, tier);
                   const cleared = isCleared(progress, l.id);
                   return (
                     <button

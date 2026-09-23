@@ -3,6 +3,7 @@ import { BADGES, GOLD_SCORE, pathFor } from '../lib/path';
 import { bestScore, earnedBadges, isCleared, isUnlocked, unlockedIndex } from '../lib/pathProgress';
 import { LEVELS, filterLessons, groupByUnit, planFor, unitFor } from '../lib/lessonCatalog';
 import { nextUnlocks, clearCount } from '../lib/locker';
+import { hasTier } from '../lib/entitlements';
 
 function UnitPlanCard(props) {
   const plan = planFor(props.unit);
@@ -33,6 +34,7 @@ export default function ChallengePath(props) {
   const style = props.style || 'rhythm';
   const lessons = props.lessons || [];
   const progress = props.progress || { clears: {}, best: {}, badges: {} };
+  const fullAccess = hasTier(props.tier, 'extreme');
   const [level, setLevel] = useState('all');
   const [openUnit, setOpenUnit] = useState(null);
   const byId = {};
@@ -48,7 +50,7 @@ export default function ChallengePath(props) {
   });
   const visibleExtra = filterLessons(extra, level);
   const extraGroups = groupByUnit(visibleExtra);
-  const coming = nextUnlocks(progress);
+  const coming = fullAccess ? [] : nextUnlocks(progress);
 
   const pathBlocks = [];
   steps.forEach(function (s) {
@@ -67,19 +69,19 @@ export default function ChallengePath(props) {
 
   function openLesson(lesson) {
     if (!lesson) return;
-    if (lesson.gate) { if (props.onUpgrade) props.onUpgrade(); return; }
-    if (!isUnlocked(progress, style, lesson.id, lesson.gate) && !isCleared(progress, lesson.id)) return;
+    if (!fullAccess && lesson.gate) { if (props.onUpgrade) props.onUpgrade(); return; }
+    if (!isUnlocked(progress, style, lesson.id, fullAccess ? null : lesson.gate, fullAccess) && !isCleared(progress, lesson.id)) return;
     if (props.onOpen) props.onOpen(lesson.id);
   }
 
   function renderNode(s) {
     const l = s.lesson;
     const cleared = isCleared(progress, l.id);
-    const unlocked = isUnlocked(progress, style, l.id, l.gate);
+    const unlocked = isUnlocked(progress, style, l.id, fullAccess ? null : l.gate, fullAccess);
     const score = bestScore(progress, l.id);
     const idx = steps.indexOf(s);
     const current = idx === open && !cleared && unlocked && !l.gate;
-    const cls = 'pathNode' + (cleared ? ' cleared' : '') + (current ? ' current' : '') + ((!unlocked || l.gate) ? ' locked' : '');
+    const cls = 'pathNode' + (cleared ? ' cleared' : '') + (current ? ' current' : '') + ((!unlocked) ? ' locked' : '');
     return (
       <li key={l.id}>
         <button className={cls} onClick={function () { openLesson(l); }}>
@@ -88,7 +90,7 @@ export default function ChallengePath(props) {
             <strong>{l.title}</strong>
             <small>{s.skill} | {l.level}{score ? ' | best ' + score + '%' : ''}{score >= GOLD_SCORE ? ' gold' : ''}</small>
           </span>
-          <span className="pathLock">{l.gate ? 'upgrade' : (!unlocked ? 'locked' : (cleared ? 'replay' : 'play'))}</span>
+          <span className="pathLock">{!unlocked ? 'locked' : (cleared ? 'replay' : 'play')}</span>
         </button>
       </li>
     );
@@ -99,7 +101,9 @@ export default function ChallengePath(props) {
       <div className="card pathHero">
         <h3>Challenge path</h3>
         <p className="muted sm">
-          Units run in order. Each header is a 12-minute session. Clear a node at {props.pass || 80}% to unlock the next one.
+          {fullAccess
+            ? 'Owner access: every node is open. Clear scores still save.'
+            : 'Units run in order. Each header is a 12-minute session. Clear a node at ' + (props.pass || 80) + '% to unlock the next one.'}
         </p>
         <div className="badgeRow">
           {BADGES.map(function (b) {
@@ -178,7 +182,7 @@ export default function ChallengePath(props) {
                         <button key={l.id} className="lessonItem" onClick={function () { openLesson(l); }}>
                           <div className="lessonTop">
                             <strong>{l.title}</strong>
-                            <span className={'levelTag ' + (l.gate ? 'locked' : l.level)}>{l.gate ? 'upgrade' : l.level}</span>
+                            <span className={'levelTag ' + (!fullAccess && l.gate ? 'locked' : l.level)}>{!fullAccess && l.gate ? 'upgrade' : l.level}</span>
                           </div>
                           <p className="lessonSummary">{l.summary}</p>
                         </button>

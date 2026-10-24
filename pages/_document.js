@@ -2,6 +2,7 @@ import { Html, Head, Main, NextScript } from 'next/document';
 
 const AVANT_SRC = 'http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=cc541d53f4a80b0e684e927f407f35c5db9519d0';
 const ADSENSE = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4798049989357665';
+const PI_SDK = 'https://sdk.minepi.com/pi-sdk.js';
 
 export default function Document() {
   return (
@@ -14,6 +15,7 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <script src={PI_SDK} />
         <script
           async
           src={ADSENSE}

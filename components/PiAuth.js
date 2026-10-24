@@ -8,11 +8,15 @@ export default function PiAuth() {
 
   useEffect(() => {
     let cancelled = false;
+    let attempts = 0;
 
     async function initPi() {
-      if (typeof window === 'undefined' || !window.Pi) {
-        // SDK not loaded yet; retry shortly
-        setTimeout(initPi, 100);
+      if (typeof window === 'undefined') return;
+      if (!window.Pi) {
+        attempts += 1;
+        if (attempts < 50) {
+          setTimeout(initPi, 100);
+        }
         return;
       }
 
@@ -20,18 +24,17 @@ export default function PiAuth() {
         await window.Pi.init({ version: '2.0' });
 
         const onIncompletePaymentFound = (payment) => {
-          console.log('Incomplete payment:', payment);
-          // Handle incomplete payments if needed
+          console.log('Incomplete Pi payment:', payment);
         };
 
         const authResult = await window.Pi.authenticate(['username'], onIncompletePaymentFound);
-        const accessToken = authResult.accessToken;
+        const accessToken = authResult && authResult.accessToken;
 
         if (!accessToken) {
-          throw new Error('No accessToken from Pi.authenticate');
+          if (!cancelled) setError('No accessToken');
+          return;
         }
 
-        // Exchange with App Studio
         const res = await fetch(APP_STUDIO_LOGIN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -39,30 +42,29 @@ export default function PiAuth() {
         });
 
         if (!res.ok) {
-          throw new Error('App Studio login failed: ' + res.status);
+          if (!cancelled) setError('App Studio login failed: ' + res.status);
+          return;
         }
 
         const data = await res.json();
-        if (!cancelled) {
-          // Trust only the identity from App Studio
-          setSession({
+        if (!cancelled && data && data.user) {
+          const sess = {
             sessionToken: data.sessionToken,
             uid: data.user.uid,
             username: data.user.username
-          });
-          // Store in memory / localStorage for app use
+          };
+          setSession(sess);
           try {
-            localStorage.setItem('pi_session', JSON.stringify({
-              sessionToken: data.sessionToken,
-              uid: data.user.uid,
-              username: data.user.username
-            }));
+            localStorage.setItem('pi_session', JSON.stringify(sess));
           } catch (e) {}
+          if (typeof window !== 'undefined') {
+            window.__piSession = sess;
+          }
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Pi auth error:', err);
-          setError(err.message || 'Authentication failed');
+          console.warn('Pi auth not available or cancelled:', err && err.message);
+          setError(err && err.message ? err.message : 'Pi auth failed');
         }
       }
     }
@@ -74,10 +76,5 @@ export default function PiAuth() {
     };
   }, []);
 
-  // Optional: expose for debugging or app consumption
-  if (typeof window !== 'undefined') {
-    window.__piSession = session;
-  }
-
-  return null; // Silent auth; integrate with UI as needed
+  return null;
 }

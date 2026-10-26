@@ -14,8 +14,9 @@ function usedLabel(u) {
 export default function AdminPanel() {
   const [data, setData] = useState(null);
   const [err, setErr] = useState('');
+  const [live, setLive] = useState(null);
 
-  useEffect(function () {
+  function load() {
     fetch('/api/admin/stats', { credentials: 'include' })
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (b) {
@@ -28,6 +29,16 @@ export default function AdminPanel() {
         setData(r.body);
       })
       .catch(function () { setErr('Could not load admin stats'); });
+    fetch('/api/presence/heartbeat', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (b) { setLive(b); })
+      .catch(function () {});
+  }
+
+  useEffect(function () {
+    load();
+    var t = setInterval(load, 30000);
+    return function () { clearInterval(t); };
   }, []);
 
   if (err) return <div className="card"><p className="warn">{err}</p></div>;
@@ -52,6 +63,36 @@ export default function AdminPanel() {
       <p className="muted sm">
         Free {c.free || 0} \u00b7 Promo {c.promo || 0} \u00b7 Paid {c.paid || 0} \u00b7 Family {c.family || 0}
       </p>
+
+      <h4 style={{ margin: '16px 0 6px' }}>Live right now</h4>
+      {live && live.reason === 'no-table' ? (
+        <p className="warn">Create table <b>presence</b> in Supabase (SQL below) so live users show.</p>
+      ) : live ? (
+        <p>
+          <b>{live.active || 0}</b> active in the last 2 min
+          {' \u00b7 '}{live.signedIn || 0} signed in
+          {' \u00b7 '}{live.guests || 0} guests
+        </p>
+      ) : (
+        <p className="muted sm">Checking live users\u2026</p>
+      )}
+      {live && live.recent && live.recent.length ? (
+        <ul className="muted sm">
+          {live.recent.slice(0, 8).map(function (r, i) {
+            return <li key={i}>{r.signed_in ? (r.username || 'signed in') : 'guest'} \u2014 {when(r.seen_at)}</li>;
+          })}
+        </ul>
+      ) : null}
+      {live && live.reason === 'no-table' ? (
+        <pre className="muted sm" style={{ whiteSpace: 'pre-wrap' }}>{
+`create table if not exists presence (
+  sid text primary key,
+  signed_in boolean default false,
+  username text,
+  seen_at timestamptz default now()
+);`}</pre>
+      ) : null}
+
       <h4 style={{ margin: '16px 0 6px' }}>Forest</h4>
       {forest ? (
         <p>

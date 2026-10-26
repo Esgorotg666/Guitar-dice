@@ -3,7 +3,8 @@ import { DAD_LINE, quoteForDay } from '../lib/forestNotes';
 
 export default function WelcomeBanner(props) {
   const name = displayNameFor(props.user);
-  if (!name) return null;
+  // Only Forest gets the special banner. Everyone else sees nothing here.
+  if (name !== 'Forest') return null;
   const quote = quoteForDay();
 
   return (

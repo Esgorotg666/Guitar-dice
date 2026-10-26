@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import PromoCode from './PromoCode';
-import WelcomeBanner from './WelcomeBanner';
 import AdminPanel from './AdminPanel';
 
 function api(path, opts) {
@@ -171,7 +170,6 @@ export default function Account(props) {
 
   return (
     <div>
-      <WelcomeBanner user={user} />
       <AdminPanel />
       <div className="card">
         <div className="rowBetween">

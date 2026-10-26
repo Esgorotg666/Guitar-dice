@@ -82,7 +82,7 @@ function TunePic() {
       <rect x="58" y="40" width="184" height="86" rx="12" fill="#0d1319" stroke="#2ee59d" strokeWidth="2" />
       <text x="150" y="78" textAnchor="middle" fill="#2ee59d" fontSize="32" fontWeight="800">E</text>
       <line x1="150" y1="88" x2="150" y2="114" stroke="#ffc65c" strokeWidth="3" />
-      <text x="150" y="158" textAnchor="middle" fill="#d7c7a2" fontSize="12">Tools \u2192 Tuner. Tiny turns on the peg.</text>
+      <text x="150" y="158" textAnchor="middle" fill="#d7c7a2" fontSize="12">Tools → Tuner. Tiny turns on the peg.</text>
     </svg>
   );
 }
@@ -127,17 +127,17 @@ function PhrasePic(props) {
 
 const PICS = {
   hold: { title: 'Sit and hold', caption: 'Chair with no arms. Neck slightly up. Thumb on the back of the neck.', node: HoldPic },
-  strings: { title: 'Thickest string is low E', caption: 'E A D G B e \u2014 fat string is 6, thin string is 1.', node: function () { return <Neck label="String names" highlight={[0, 5]} />; } },
+  strings: { title: 'Thickest string is low E', caption: 'E A D G B e — fat string is 6, thin string is 1.', node: function () { return <Neck label="String names" highlight={[0, 5]} />; } },
   tune: { title: 'Get the letter in the middle', caption: 'One string at a time. Tightening raises the pitch.', node: TunePic },
   em: {
-    title: 'Em \u2014 two fingers',
+    title: 'Em — two fingers',
     caption: 'Middle on A fret 2. Ring on D fret 2. Everything else open.',
     node: function () {
       return (<Neck label="E minor"><FingerDot string={1} fret={2} n="2" /><FingerDot string={2} fret={2} n="3" /></Neck>);
     }
   },
   g: {
-    title: 'G \u2014 three fingers',
+    title: 'G — three fingers',
     caption: 'Ring on low E fret 3. Middle on A fret 2. Pinky on high E fret 3.',
     node: function () {
       return (<Neck label="G major"><FingerDot string={0} fret={3} n="3" /><FingerDot string={1} fret={2} n="2" /><FingerDot string={5} fret={3} n="4" /></Neck>);
@@ -163,21 +163,21 @@ const PICS = {
     }
   },
   barreMini: {
-    title: 'Mini F \u2014 three strings',
+    title: 'Mini F — three strings',
     caption: 'Index on B and high E fret 1. Middle on G fret 2.',
     node: function () {
       return (<Neck label="Mini F"><BarreBar fret={1} from={4} to={5} /><FingerDot string={3} fret={2} n="2" /></Neck>);
     }
   },
   barreF: {
-    title: 'Full F \u2014 E shape at fret 1',
+    title: 'Full F — E shape at fret 1',
     caption: 'Barre 1, middle G2, ring A3, pinky D3.',
     node: function () {
       return (<Neck label="F barre"><BarreBar fret={1} from={0} to={5} /><FingerDot string={1} fret={3} n="3" /><FingerDot string={2} fret={3} n="4" /><FingerDot string={3} fret={2} n="2" /></Neck>);
     }
   },
   barreBm: {
-    title: 'Bm \u2014 Am shape at fret 2',
+    title: 'Bm — Am shape at fret 2',
     caption: 'Skip low E. Index bars from A across fret 2.',
     node: function () {
       return (<Neck label="Bm"><BarreBar fret={2} from={1} to={5} /><FingerDot string={2} fret={4} n="3" /><FingerDot string={3} fret={4} n="4" /><FingerDot string={4} fret={3} n="2" /></Neck>);
@@ -195,11 +195,11 @@ const PICS = {
       );
     }
   },
-  pent: { title: 'Pentatonic box \u2014 two notes per string', caption: 'Climb low to high. Numbered dots are the first pass of the box.', node: PhrasePic },
+  pent: { title: 'Pentatonic box — two notes per string', caption: 'Climb low to high. Numbered dots are the first pass of the box.', node: PhrasePic },
   bend: { title: 'Bend to a target fret', caption: 'Push the lower fret until it matches the higher target. Then shake.', node: PhrasePic },
   slide: { title: 'Slide between boxes', caption: 'One motion. Do not pick the fret you slide into.', node: PhrasePic },
   strum: { title: 'Continuous down-up', caption: 'Down on the beat, up on the and. Keep the right hand moving through every chord change.', node: StrumPic },
-  power: { title: 'One power-chord grip', caption: 'Index and ring two frets apart. Slide the same shape: E5 \u2192 A5 \u2192 D5.', node: PhrasePic },
+  power: { title: 'One power-chord grip', caption: 'Index and ring two frets apart. Slide the same shape: E5 → A5 → D5.', node: PhrasePic },
   hp: { title: 'Hammer and pull as a lick', caption: 'Pick only the first note. Hammer hard enough to match the pick. Pull sideways.', node: PhrasePic },
   scaleTrans: { title: 'Full scale into related scale', caption: 'Play the major scale up, then drop into the relative minor pentatonic or major pentatonic. Same key center.', node: PhrasePic },
   blues: { title: '12-bar skeleton', caption: 'Four bars of I, two of IV, two of I, one V, one IV, two I. Change on the bar.', node: PhrasePic }

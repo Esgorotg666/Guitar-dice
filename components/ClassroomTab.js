@@ -7,6 +7,7 @@ import GuideShelf from './GuideShelf';
 import LessonPictures from './LessonPictures';
 import LessonSheet from './LessonSheet';
 import ClassroomFolders from './ClassroomFolders';
+import KeyExplorer from './KeyExplorer';
 import { chordColor, voicingLabel } from '../lib/theory';
 import { placementLines } from '../lib/chordFingers';
 import { strumChord } from '../lib/audio';
@@ -84,6 +85,7 @@ export default function ClassroomTab(props) {
   const nav = (
     <div className="levelRow learnNav">
       <button className={'chipBtn' + (shelf === 'class' ? ' on' : '')} onClick={function () { setShelf('class'); }}>Classroom</button>
+      <button className={'chipBtn' + (shelf === 'keys' ? ' on' : '')} onClick={function () { setShelf('keys'); }}>Keys</button>
       <button className={'chipBtn' + (shelf === 'theory' ? ' on' : '')} onClick={function () { setShelf('theory'); }}>Theory</button>
       <button className={'chipBtn' + (shelf === 'tech' ? ' on' : '')} onClick={function () { setShelf('tech'); }}>Tech</button>
       <button className={'chipBtn' + (shelf === 'path' ? ' on' : '')} onClick={function () { setShelf('path'); }}>Challenge</button>
@@ -143,6 +145,7 @@ export default function ClassroomTab(props) {
   return (
     <div>
       {nav}
+      {shelf === 'keys' ? <KeyExplorer data={data} /> : null}
       {shelf === 'theory' ? <GuideShelf kind="theory" tier={tier} onUpgrade={props.onUpgrade} /> : null}
       {shelf === 'tech' ? <GuideShelf kind="tech" tier={tier} onUpgrade={props.onUpgrade} /> : null}
       {shelf === 'path' ? (

@@ -15,6 +15,9 @@ import SettingsTab from './SettingsTab';
 import FreeAdSlot from './FreeAdSlot';
 import AvatarMark from './AvatarMark';
 import LockerStudio from './LockerStudio';
+import SignupNudge from './SignupNudge';
+import PresencePing from './PresencePing';
+import TrafficPing from './TrafficPing';
 import RewardedAd from './RewardedAd';
 import { genreLook } from '../lib/genreLook';
 import { STYLES, GENRES, SKILLS, practiceTip } from '../lib/style';
@@ -268,7 +271,7 @@ export default function Home() {
   useEffect(function () { setOpenLesson(null); }, [tab, style, genre]);
 
   if (loading) {
-    return <Shell genre={genre} theme={resolvedTheme(appSettings.theme)}><div className="center"><div className="spinner" /><p className="muted">Loading Guitar Dice…</p></div></Shell>;
+    return <Shell genre={genre} theme={resolvedTheme(appSettings.theme)}><div className="center"><div className="spinner" /><p className="muted">Loading Guitar Dice\u2026</p></div></Shell>;
   }
 
   if (needsOnboarding) {
@@ -352,13 +355,17 @@ export default function Home() {
           onNeedAccount={function () { setWall(false); setTab('account'); }} />
       ) : null}
 
+      <SignupNudge user={user} onSignup={function () { setTab('account'); }} />
+      <PresencePing user={user} />
+      <TrafficPing />
+
       <header className="appHead">
         <button className="idChip" onClick={function () { setTab('account'); }} title="Open locker">
           <AvatarMark locker={locker} size={40} />
         </button>
         <div>
           <h1>Guitar Dice</h1>
-          <p className="muted sm">{styleMeta.label} · {genreLabel}</p>
+          <p className="muted sm">{styleMeta.label} \u00b7 {genreLabel}</p>
         </div>
         <div className="stats">
           {paid ? <span className="pill tier">{usage.tierLabel}</span> : null}
@@ -385,7 +392,7 @@ export default function Home() {
           <p className="homeIntro">Tap <b>Roll chords</b>. Then tap a chord to hear it. Class is the lessons.</p>
           <button className={'rollBtn' + (rolling ? ' rolling' : '')} onClick={doRoll} disabled={rolling}>
             <span className="die">[ ]</span>
-            {rolling ? 'Rolling…' : (items.length ? 'Roll again' : 'Roll chords')}
+            {rolling ? 'Rolling\u2026' : (items.length ? 'Roll again' : 'Roll chords')}
           </button>
           {msg ? <div className="notice"><span>{msg}</span></div> : null}
           <details className="moreRoll">
@@ -467,7 +474,7 @@ export default function Home() {
           <h3>Saved</h3>
           {!saved.length ? <p className="muted">Nothing saved yet. Roll something and tap Save.</p> : null}
           {saved.map(function (s) {
-            return <p key={s.id} className="muted sm">{(s.chords || []).join(' — ')}</p>;
+            return <p key={s.id} className="muted sm">{(s.chords || []).join(' \u2014 ')}</p>;
           })}
         </div>
       ) : null}
@@ -531,7 +538,7 @@ export default function Home() {
         </SettingsTab>
       ) : null}
 
-      <footer className="appFoot"><a href="/privacy">Privacy</a> · <a href="mailto:midnightmechanix@icloud.com">Contact</a></footer>
+      <footer className="appFoot"><a href="/privacy">Privacy</a> \u00b7 <a href="mailto:midnightmechanix@icloud.com">Contact</a></footer>
     </Shell>
   );
 }

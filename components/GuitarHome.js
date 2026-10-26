@@ -272,7 +272,7 @@ export default function Home() {
   useEffect(function () { setOpenLesson(null); }, [tab, style, genre]);
 
   if (loading) {
-    return <Shell genre={genre} theme={resolvedTheme(appSettings.theme)}><div className="center"><div className="spinner" /><p className="muted">Loading Guitar Dice\u2026</p></div></Shell>;
+    return <Shell genre={genre} theme={resolvedTheme(appSettings.theme)}><div className="center"><div className="spinner" /><p className="muted">Loading Guitar Dice…</p></div></Shell>;
   }
 
   if (needsOnboarding) {
@@ -366,7 +366,7 @@ export default function Home() {
         </button>
         <div>
           <h1>Guitar Dice</h1>
-          <p className="muted sm">{styleMeta.label} \u00b7 {genreLabel}</p>
+          <p className="muted sm">{styleMeta.label} · {genreLabel}</p>
         </div>
         <div className="stats">
           {paid ? <span className="pill tier">{usage.tierLabel}</span> : null}
@@ -394,7 +394,7 @@ export default function Home() {
           <PracticeWorkout style={style} skill={skill} lessons={lessons} streak={streak} onGoRoll={function () { setTab("roll"); }} onOpenLesson={function (l) { setTab("classroom"); setOpenLesson(l && l.id); }} />
           <button className={'rollBtn' + (rolling ? ' rolling' : '')} onClick={doRoll} disabled={rolling}>
             <span className="die">[ ]</span>
-            {rolling ? 'Rolling\u2026' : (items.length ? 'Roll again' : 'Roll chords')}
+            {rolling ? 'Rolling…' : (items.length ? 'Roll again' : 'Roll chords')}
           </button>
           {msg ? <div className="notice"><span>{msg}</span></div> : null}
           <details className="moreRoll">
@@ -476,7 +476,7 @@ export default function Home() {
           <h3>Saved</h3>
           {!saved.length ? <p className="muted">Nothing saved yet. Roll something and tap Save.</p> : null}
           {saved.map(function (s) {
-            return <p key={s.id} className="muted sm">{(s.chords || []).join(' \u2014 ')}</p>;
+            return <p key={s.id} className="muted sm">{(s.chords || []).join(' — ')}</p>;
           })}
         </div>
       ) : null}
@@ -540,7 +540,7 @@ export default function Home() {
         </SettingsTab>
       ) : null}
 
-      <footer className="appFoot"><a href="/privacy">Privacy</a> \u00b7 <a href="mailto:midnightmechanix@icloud.com">Contact</a></footer>
+      <footer className="appFoot"><a href="/privacy">Privacy</a> · <a href="mailto:midnightmechanix@icloud.com">Contact</a></footer>
     </Shell>
   );
 }

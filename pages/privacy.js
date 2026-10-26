@@ -10,7 +10,7 @@ export default function Privacy() {
         <a className="btn ghost" href={APK_URL} style={{ textDecoration:'none' }}>Android APK</a>
       </p>
       <h3 style={{ marginTop:30, fontSize:'1.3rem' }}>Privacy Policy</h3>
-      <p className="muted sm">Last updated: August 25, 2026</p>
+      <p className="muted sm">Last updated: October 26, 2026</p>
       <p>Guitar Dice (the App) is a guitar practice tool that generates chord progressions, scales, and practice exercises. This policy explains what information we collect and how we use it.</p>
       <h3>Information We Collect</h3>
       <ul>
@@ -20,11 +20,12 @@ export default function Privacy() {
         <li><b>Sign-in records:</b> We record sign-in attempts and the device type of each active session so we can block brute-force attacks and show you where your account is signed in.</li>
         <li><b>Device identifier:</b> A random device ID may be used to remember free-tier usage without an account.</li>
         <li><b>Local drafts:</b> An unfinished song in the Song Challenge is stored in your own browser so a refresh does not lose it. It is not sent to us until you tap Save.</li>
+        <li><b>Live presence:</b> When you are signed in, the app may send a short heartbeat with your username so the owner can see how many people are currently using the app. This is not shared with other users.</li>
       </ul>
       <h3>Microphone and the Tuner</h3>
       <p>The tuner asks for microphone permission so it can hear your guitar. Audio is analysed live on your own device to work out the pitch. Nothing from your microphone is recorded, saved, or sent to us or anyone else, and the microphone is released as soon as you stop the tuner.</p>
       <h3>Account Security</h3>
-      <p>Passwords are hashed with PBKDF2 (210,000 iterations) and never stored or logged in readable form. Repeated failed sign-ins temporarily lock an account. You can see every device where you are signed in, sign them all out, and change your password at any time from the Account tab. Changing your password signs out every other device.</p>
+      <p>Passwords are hashed with PBKDF2 (210,000 iterations) and never stored or logged in readable form. Repeated failed sign-ins temporarily lock an account. You can see every device where you are signed in, sign them all out, and change your password at any time from the Account tab. Changing your password signs out every other device. Public endpoints are rate-limited to reduce abuse.</p>
       <h3>Advertising</h3>
       <p>The Android app displays ads via Google AdMob, which may collect device identifiers and usage data. See <a href="https://policies.google.com/privacy">Google Privacy Policy</a>. Rewarded ads are optional and grant extra dice rolls.</p>
       <h3>What We Do Not Do</h3>

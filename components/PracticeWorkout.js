@@ -24,7 +24,7 @@ export default function PracticeWorkout(props) {
   if (done) {
     return (
       <div className="card" style={{ borderColor: '#35c46b' }}>
-        <h3>Today\u2019s practice \u2014 done</h3>
+        <h3>Today’s practice — done</h3>
         <p className="muted sm">Nice work. Come back tomorrow or roll more chords if you want extra time.</p>
         <button className="btn ghost" onClick={function () { setDone(false); }}>Redo</button>
       </div>
@@ -33,26 +33,26 @@ export default function PracticeWorkout(props) {
 
   return (
     <div className="card">
-      <h3>Today\u2019s practice</h3>
+      <h3>Today’s practice</h3>
       <p className="muted sm">
         {streak && streak.currentStreak > 1 ? streak.currentStreak + '-day streak. ' : ''}
-        10\u201315 minutes. One focused block beats an hour of noodling.
+        10–15 minutes. One focused block beats an hour of noodling.
       </p>
       <ol className="stepList">
-        <li><b>Warm-up (2 min)</b> \u2014 Open strings or spider 1-2-3-4. No tempo yet.</li>
+        <li><b>Warm-up (2 min)</b> — Open strings or spider 1-2-3-4. No tempo yet.</li>
         <li>
-          <b>Lesson (5\u20137 min)</b> \u2014 {nextLesson
+          <b>Lesson (5–7 min)</b> — {nextLesson
             ? <button className="linkish" onClick={function () { if (onOpenLesson) onOpenLesson(nextLesson); }}>Open: {nextLesson.title}</button>
             : 'Pick any Learn lesson in Classroom.'}
         </li>
         <li>
-          <b>Apply with dice (5 min)</b> \u2014 Roll a progression. Strum it clean, then solo over it with the suggested scale.
+          <b>Apply with dice (5 min)</b> — Roll a progression. Strum it clean, then solo over it with the suggested scale.
           <button className="btn sm primary" style={{ marginLeft: 8 }} onClick={onGoRoll}>Go roll</button>
         </li>
-        <li><b>Record one pass</b> \u2014 Phone only. Listen for the first mistake, fix it once, stop.</li>
+        <li><b>Record one pass</b> — Phone only. Listen for the first mistake, fix it once, stop.</li>
       </ol>
       <p className="muted sm">{tip}</p>
-      <button className="btn primary" onClick={markDone}>Mark today\u2019s practice done</button>
+      <button className="btn primary" onClick={markDone}>Mark today’s practice done</button>
     </div>
   );
 }

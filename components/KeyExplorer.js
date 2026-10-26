@@ -7,8 +7,8 @@ const MAJOR_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
 const MINOR_INTERVALS = [0, 2, 3, 5, 7, 8, 10];
 const MAJOR_QUAL = ['', 'm', 'm', '', '', 'm', 'dim'];
 const MINOR_QUAL = ['m', 'dim', '', 'm', 'm', '', ''];
-const ROMAN_MAJ = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii\u00b0'];
-const ROMAN_MIN = ['i', 'ii\u00b0', 'III', 'iv', 'v', 'VI', 'VII'];
+const ROMAN_MAJ = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+const ROMAN_MIN = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'];
 
 function noteName(pc) {
   return rootFromPc(pc) || NOTE_NAMES[((pc % 12) + 12) % 12];

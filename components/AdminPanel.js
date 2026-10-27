@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 
 function when(v) {
-  if (!v) return '\u2014';
+  if (!v) return '—';
   try { return new Date(v).toLocaleString(); } catch (e) { return String(v); }
 }
 
 function usedLabel(u) {
-  if (u.lastSignIn) return 'Yes \u2014 ' + when(u.lastSignIn);
-  if (u.created) return 'Account only \u2014 never signed in after create';
+  if (u.lastSignIn) return 'Yes — ' + when(u.lastSignIn);
+  if (u.created) return 'Account only — never signed in after create';
   return 'No activity yet';
 }
 
@@ -55,13 +55,13 @@ export default function AdminPanel() {
 
   return (
     <div className="card">
-      <h3>Admin \u2014 accounts</h3>
+      <h3>Admin — accounts</h3>
       <p className="muted sm">Signed in as admin: {data.admin}</p>
       <p style={{ fontSize: '1.4rem', margin: '8px 0' }}>
-        <b>{data.accounts == null ? '\u2014' : data.accounts}</b> accounts
+        <b>{data.accounts == null ? '—' : data.accounts}</b> accounts
       </p>
       <p className="muted sm">
-        Free {c.free || 0} \u00b7 Promo {c.promo || 0} \u00b7 Paid {c.paid || 0} \u00b7 Family {c.family || 0}
+        Free {c.free || 0} · Promo {c.promo || 0} · Paid {c.paid || 0} · Family {c.family || 0}
       </p>
 
       <h4 style={{ margin: '16px 0 6px' }}>Live right now</h4>
@@ -70,16 +70,16 @@ export default function AdminPanel() {
       ) : live ? (
         <p>
           <b>{live.active || 0}</b> active in the last 2 min
-          {' \u00b7 '}{live.signedIn || 0} signed in
-          {' \u00b7 '}{live.guests || 0} guests
+          {' · '}{live.signedIn || 0} signed in
+          {' · '}{live.guests || 0} guests
         </p>
       ) : (
-        <p className="muted sm">Checking live users\u2026</p>
+        <p className="muted sm">Checking live users…</p>
       )}
       {live && live.recent && live.recent.length ? (
         <ul className="muted sm">
           {live.recent.slice(0, 8).map(function (r, i) {
-            return <li key={i}>{r.signed_in ? (r.username || 'signed in') : 'guest'} \u2014 {when(r.seen_at)}</li>;
+            return <li key={i}>{r.signed_in ? (r.username || 'signed in') : 'guest'} — {when(r.seen_at)}</li>;
           })}
         </ul>
       ) : null}
@@ -97,11 +97,11 @@ export default function AdminPanel() {
       {forest ? (
         <p>
           <b>{forest.email || forest.username}</b>
-          {' \u2014 '}tier <b>{forest.tier}</b>
-          {' \u00b7 '}{forest.source}
-          {' \u00b7 '}{usedLabel(forest)}
-          {' \u00b7 '}lessons {forest.passed || 0} passed / {forest.attempts || 0} tries
-          {forest.lastLesson ? ' \u00b7 last: ' + forest.lastLesson : ''}
+          {' — '}tier <b>{forest.tier}</b>
+          {' · '}{forest.source}
+          {' · '}{usedLabel(forest)}
+          {' · '}lessons {forest.passed || 0} passed / {forest.attempts || 0} tries
+          {forest.lastLesson ? ' · last: ' + forest.lastLesson : ''}
         </p>
       ) : (
         <p className="muted sm">frostyboy138@gmail.com is not in Auth yet, or the service key cannot list users.</p>
@@ -112,7 +112,7 @@ export default function AdminPanel() {
       ) : (
         <p className="muted sm">
           Today: <b>{todayRow ? todayRow.views : 0}</b> views / <b>{todayRow ? todayRow.uniques : 0}</b> people
-          {' \u00b7 '}Last 30 days: <b>{t.totalViews || 0}</b> views / <b>{t.totalUniques || 0}</b> people
+          {' · '}Last 30 days: <b>{t.totalViews || 0}</b> views / <b>{t.totalUniques || 0}</b> people
         </p>
       )}
       {L.reason === 'no-table' ? (
@@ -128,7 +128,7 @@ export default function AdminPanel() {
             {L.recent.slice(0, 8).map(function (e, i) {
               return (
                 <li key={i}>
-                  {(e.email || e.username || 'user') + ' \u2014 ' + (e.title || e.lesson_id) + ' \u2014 ' + e.score + '%' + (e.passed ? ' pass' : ' miss')}
+                  {(e.email || e.username || 'user') + ' — ' + (e.title || e.lesson_id) + ' — ' + e.score + '%' + (e.passed ? ' pass' : ' miss')}
                 </li>
               );
             })}
@@ -137,7 +137,7 @@ export default function AdminPanel() {
       ) : null}
       <p className="muted sm">
         Stripe customers: {data.stripeCustomers}
-        {data.stripeHasMore ? '+' : ''}{data.stripeLive ? ' \u00b7 live' : ''}
+        {data.stripeHasMore ? '+' : ''}{data.stripeLive ? ' · live' : ''}
       </p>
       {data.authError ? <p className="warn">{data.authError}</p> : null}
       {data.users && data.users.length ? (
@@ -159,12 +159,12 @@ export default function AdminPanel() {
                 const highlight = String(u.email || '').toLowerCase().indexOf('frostyboy138') >= 0;
                 return (
                   <tr key={u.id} style={highlight ? { background: 'rgba(201,162,39,0.12)' } : undefined}>
-                    <td style={{ padding: '4px 8px 4px 0' }}>{u.username || '\u2014'}</td>
-                    <td style={{ padding: '4px 8px' }}>{u.email || '\u2014'}</td>
+                    <td style={{ padding: '4px 8px 4px 0' }}>{u.username || '—'}</td>
+                    <td style={{ padding: '4px 8px' }}>{u.email || '—'}</td>
                     <td style={{ padding: '4px 8px' }}>{u.tier || 'free'}</td>
                     <td style={{ padding: '4px 8px' }}>{u.passed || 0}</td>
                     <td style={{ padding: '4px 8px' }}>{u.attempts || 0}</td>
-                    <td style={{ padding: '4px 8px' }}>{u.lastLesson || '\u2014'}</td>
+                    <td style={{ padding: '4px 8px' }}>{u.lastLesson || '—'}</td>
                     <td style={{ padding: '4px 0 4px 8px' }}>{when(u.lastSignIn)}</td>
                   </tr>
                 );

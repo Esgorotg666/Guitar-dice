@@ -92,24 +92,24 @@ export default function Metronome(props) {
       <input className="slider" type="range" min={40} max={240} value={bpm}
         onChange={function (e) { changeBpm(Number(e.target.value)); }} />
       {blocked ? <p className="warn">No sound? On iPhone the silent switch on the side of the phone mutes web audio. Flick it to ring mode, turn the volume up, then press Start again.</p> : null}
-      {paid ? (
-        <div className="metroOpts">
-          <div className="optGroup">
-            <span className="optLabel">Time signature</span>
-            <div className="optRow">
-              {TIME_SIGS.map(function (t) {
-                return <button key={t.label} className={'chipBtn' + (beats===t.beats?' on':'')} onClick={function () { setBeats(t.beats); }}>{t.label}</button>;
-              })}
-            </div>
+      <div className="metroOpts">
+        <div className="optGroup">
+          <span className="optLabel">Time signature</span>
+          <div className="optRow">
+            {TIME_SIGS.map(function (t) {
+              return <button key={t.label} className={'chipBtn' + (beats===t.beats?' on':'')} onClick={function () { setBeats(t.beats); }}>{t.label}</button>;
+            })}
           </div>
-          <div className="optGroup">
-            <span className="optLabel">Count</span>
-            <div className="optRow">
-              {SUBDIVISIONS.map(function (s) {
-                return <button key={s.value} className={'chipBtn' + (sub===s.value?' on':'')} onClick={function () { setSub(s.value); }}>{s.label}</button>;
-              })}
-            </div>
+        </div>
+        <div className="optGroup">
+          <span className="optLabel">Count per beat</span>
+          <div className="optRow">
+            {SUBDIVISIONS.map(function (s) {
+              return <button key={s.value} className={'chipBtn' + (sub===s.value?' on':'')} onClick={function () { setSub(s.value); }}>{s.label}</button>;
+            })}
           </div>
+        </div>
+        {paid ? (
           <div className="optGroup">
             <span className="optLabel">Sound</span>
             <div className="optRow">
@@ -124,13 +124,10 @@ export default function Metronome(props) {
               })}
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="lockNote">
-          <b>On Premium and Extreme:</b> time signatures from 2/4 to 7/8, eighth, triplet and sixteenth counts, and six click sounds - wood block, snare, rimshot, cowbell and hi-hat.
-          {props.onUpgrade ? <button className="linkBtn" onClick={props.onUpgrade}>See plans</button> : null}
-        </div>
-      )}
+        ) : (
+          <p className="muted sm">Premium and Extreme unlock extra click sounds (wood, snare, rimshot, cowbell, hi-hat).</p>
+        )}
+      </div>
     </div>
   );
 }

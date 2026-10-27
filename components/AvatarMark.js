@@ -71,6 +71,23 @@ export default function AvatarMark(props) {
       {/* mouth */}
       <path d="M34 40c2.5 2.5 9.5 2.5 12 0" stroke="#1a1410" strokeWidth="1.6" fill="none" strokeLinecap="round" />
 
+      {/* side part */}
+      {a.hair === 'side' ? (
+        <g>
+          <path d="M22 28c4-14 36-14 36 2-10-8-26-8-36-2z" fill={hairColor} />
+          <path d="M30 22c6-6 18-4 20 2" fill={hairHighlight} opacity="0.4" />
+          <path d="M24 32c-1 6 2 10 4 12" stroke={hairColor} strokeWidth="2.5" fill="none" />
+        </g>
+      ) : null}
+
+      {/* long hair */}
+      {a.hair === 'long' ? (
+        <g>
+          <path d="M20 30c2-16 38-16 40 2v18c-4 4-10 6-16 6s-12-2-16-6c-2-4-4-10-4-14z" fill={hairColor} />
+          <path d="M24 28c6-10 26-10 32 2" fill={hairHighlight} opacity="0.3" />
+        </g>
+      ) : null}
+
       {/* hat: cap */}
       {a.hat === 'cap' ? (
         <g>

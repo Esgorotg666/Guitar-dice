@@ -35,9 +35,10 @@ export default function ClassroomFolders(props) {
   return (
     <div className="classFolders">
       <p className="muted sm" style={{ margin: '0 0 8px' }}>
+        Lessons are filtered for your playing style ({props.style || 'rhythm'}).
         {fullAccess
-          ? 'Owner Extreme: every level, folder, and finale is open.'
-          : 'Pick a level. Open one folder. Finish those lessons. Then play the finale.'}
+          ? ' Owner Extreme: every level, folder, and finale is open.'
+          : ' Pick a level. Open one folder. Finish those lessons. Then play the finale.'}
       </p>
       <div className="levelRow">
         {LEVELS.map(function (lv) {

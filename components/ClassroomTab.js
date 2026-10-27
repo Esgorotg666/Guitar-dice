@@ -165,6 +165,7 @@ export default function ClassroomTab(props) {
           lessons={lessons}
           tier={tier}
           progress={progress}
+          style={style}
           onOpen={openLesson}
           onUpgrade={props.onUpgrade}
         />

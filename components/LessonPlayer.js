@@ -61,9 +61,11 @@ export default function LessonPlayer(props) {
   const shapes = passed.length ? passed : loaded;
   const chordMode = !grouped && !!(props.chordMode || chordKeys.length >= 2) && shapes.length >= 2;
   const baseBpm = props.bpm || 80;
+  const baseBeats = props.beats || 4;
   const legend = props.legend || FALLBACK_LEGEND;
   const legendOrder = props.legendOrder || FALLBACK_ORDER;
   const [bpm, setBpm] = useState(baseBpm);
+  const [beats, setBeats] = useState(baseBeats);
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -265,7 +267,8 @@ export default function LessonPlayer(props) {
       ) : null}
 
       <div className="playRow">
-        <button className={playing ? 'btn danger' : 'btn primary'} onClick={toggle}>{playing ? 'Stop' : 'Hear it'}</button>
+        <button className="btn primary" onClick={function () { if (!playing) toggle(); }} disabled={playing}>Start</button>
+        <button className="btn danger" onClick={function () { if (playing) toggle(); }} disabled={!playing}>Stop</button>
         <div className="tempoBox">
           <button className="btn ghost sm" onClick={function () { setTempo(bpm - 5); }}>-</button>
           <span className="tempoVal"><b>{bpm}</b> BPM{pct !== 100 ? <i>{pct}%</i> : null}</span>
@@ -278,6 +281,14 @@ export default function LessonPlayer(props) {
         <button className="chipBtn" onClick={function () { setTempo(Math.round(baseBpm*0.5)); }}>Half speed</button>
         <button className="chipBtn" onClick={function () { setTempo(Math.round(baseBpm*0.75)); }}>75%</button>
         <button className="chipBtn" onClick={function () { setTempo(baseBpm); }}>Written tempo</button>
+      </div>
+      <div className="optGroup" style={{ marginTop:8 }}>
+        <span className="optLabel">Beats per bar</span>
+        <div className="optRow">
+          {[2,3,4,5,6,7].map(function (b) {
+            return <button key={b} className={'chipBtn' + (beats===b?' on':'')} onClick={function () { setBeats(b); if (playing) halt(); }}>{b}/4</button>;
+          })}
+        </div>
       </div>
 
       {blocked ? <p className="warn">No sound? On iPhone, flick the silent switch to ring mode, turn the volume up, then tap Hear it again.</p> : null}

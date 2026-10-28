@@ -5,104 +5,97 @@ export default function AvatarMark(props) {
   const skin = skinLook(a.skin).fill;
   const shirt = shirtLook(a.shirt).fill;
   const size = props.size || 44;
-  const hairColor = '#1c1612';
-  const hairHighlight = '#3a2e24';
+  const hairColor = '#1a1410';
+  const hairHi = '#3d3228';
 
   return (
-    <svg className="avatarMark" width={size} height={size} viewBox="0 0 80 80" aria-hidden="true">
-      <circle cx="40" cy="40" r="38" fill="#0e141b" stroke="var(--accent, #3b9dff)" strokeWidth="2.5" />
+    <svg className="avatarMark" width={size} height={size} viewBox="0 0 96 96" aria-hidden="true">
+      <defs>
+        <radialGradient id="faceGrad" cx="50%" cy="40%" r="55%">
+          <stop offset="0%" stopColor={skin} />
+          <stop offset="100%" stopColor={skin} stopOpacity="0.85" />
+        </radialGradient>
+      </defs>
+      <circle cx="48" cy="48" r="46" fill="#0c1016" stroke="var(--accent, #3b9dff)" strokeWidth="2.5" />
 
-      {/* neck / shoulders */}
-      <path d="M22 58c0-8 6-12 18-12s18 4 18 12v14H22z" fill={shirt} />
-      <path d="M28 46c2 4 6 6 12 6s10-2 12-6" fill={skin} />
+      {/* shoulders */}
+      <path d="M18 72c2-14 12-20 30-20s28 6 30 20v16H18z" fill={shirt} />
+      <path d="M30 54c3 6 8 9 18 9s15-3 18-9" fill={skin} />
 
       {/* head */}
-      <ellipse cx="40" cy="32" rx="16" ry="18" fill={skin} />
+      <ellipse cx="48" cy="38" rx="18" ry="20" fill="url(#faceGrad)" />
 
       {/* ears */}
-      <ellipse cx="24" cy="34" rx="3.2" ry="4.5" fill={skin} />
-      <ellipse cx="56" cy="34" rx="3.2" ry="4.5" fill={skin} />
+      <ellipse cx="28" cy="40" rx="3.5" ry="5" fill={skin} />
+      <ellipse cx="68" cy="40" rx="3.5" ry="5" fill={skin} />
+      <ellipse cx="28" cy="40" rx="1.8" ry="3" fill="#c9a07a" opacity="0.4" />
+      <ellipse cx="68" cy="40" rx="1.8" ry="3" fill="#c9a07a" opacity="0.4" />
 
-      {/* hair base layer so it sits under hat cleanly */}
-      {a.hair !== 'none' ? (
-        <path d="M24 30c1-14 31-14 32 0-4-6-28-6-32 0z" fill={hairColor} />
-      ) : null}
-
-      {/* short hair */}
+      {/* hair styles */}
       {a.hair === 'short' ? (
         <g>
-          <path d="M23 28c2-12 32-12 34 1-6-7-28-7-34-1z" fill={hairColor} />
-          <path d="M26 26c3-8 25-8 28 1" fill={hairHighlight} opacity="0.5" />
+          <path d="M30 34c2-14 34-14 36 2-8-8-28-8-36-2z" fill={hairColor} />
+          <path d="M34 30c4-8 24-8 28 2" fill={hairHi} opacity="0.45" />
         </g>
       ) : null}
-
-      {/* mop / shaggy */}
       {a.hair === 'mop' ? (
         <g>
-          <path d="M20 32c0-16 40-16 40 2-8-9-32-9-40-2z" fill={hairColor} />
-          <path d="M22 30c4-10 32-10 36 1" fill={hairHighlight} opacity="0.35" />
-          <path d="M24 34c-2 4-1 8 2 10" stroke={hairColor} strokeWidth="3" fill="none" />
-          <path d="M56 34c2 4 1 8-2 10" stroke={hairColor} strokeWidth="3" fill="none" />
+          <path d="M26 36c0-18 44-18 44 3-10-10-34-10-44-3z" fill={hairColor} />
+          <path d="M30 32c6-10 30-10 34 2" fill={hairHi} opacity="0.3" />
+          <path d="M28 38c-2 5 0 10 3 12" stroke={hairColor} strokeWidth="3.5" fill="none" />
+          <path d="M68 38c2 5 0 10-3 12" stroke={hairColor} strokeWidth="3.5" fill="none" />
         </g>
       ) : null}
-
-      {/* bun */}
       {a.hair === 'bun' ? (
         <g>
-          <path d="M24 28c2-11 30-11 32 1" fill={hairColor} />
-          <circle cx="40" cy="12" r="7" fill={hairColor} />
-          <circle cx="40" cy="12" r="4.5" fill={hairHighlight} opacity="0.6" />
+          <path d="M30 32c3-12 33-12 36 2" fill={hairColor} />
+          <circle cx="48" cy="14" r="8" fill={hairColor} />
+          <circle cx="48" cy="14" r="5" fill={hairHi} opacity="0.5" />
+        </g>
+      ) : null}
+      {a.hair === 'side' ? (
+        <g>
+          <path d="M28 32c5-16 40-16 40 3-12-9-28-9-40-3z" fill={hairColor} />
+          <path d="M36 26c7-6 18-4 22 3" fill={hairHi} opacity="0.35" />
+          <path d="M30 36c-1 7 3 12 5 14" stroke={hairColor} strokeWidth="3" fill="none" />
+        </g>
+      ) : null}
+      {a.hair === 'long' ? (
+        <g>
+          <path d="M24 34c3-18 45-18 48 3v22c-5 5-12 7-20 7s-15-2-20-7c-3-5-5-12-5-18z" fill={hairColor} />
+          <path d="M30 30c8-10 28-10 34 3" fill={hairHi} opacity="0.25" />
         </g>
       ) : null}
 
       {/* eyes */}
-      <ellipse cx="33" cy="32" rx="2.2" ry="2.6" fill="#1a1410" />
-      <ellipse cx="47" cy="32" rx="2.2" ry="2.6" fill="#1a1410" />
-      <circle cx="33.6" cy="31.4" r="0.7" fill="#fff" opacity="0.8" />
-      <circle cx="47.6" cy="31.4" r="0.7" fill="#fff" opacity="0.8" />
+      <ellipse cx="40" cy="38" rx="2.6" ry="3" fill="#1a1410" />
+      <ellipse cx="56" cy="38" rx="2.6" ry="3" fill="#1a1410" />
+      <circle cx="40.8" cy="37.2" r="0.9" fill="#fff" opacity="0.9" />
+      <circle cx="56.8" cy="37.2" r="0.9" fill="#fff" opacity="0.9" />
 
       {/* brows */}
-      <path d="M29 28c2-1.5 5-1.5 7 0" stroke="#1a1410" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-      <path d="M44 28c2-1.5 5-1.5 7 0" stroke="#1a1410" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <path d="M35 33c2.5-2 6-2 8.5 0" stroke="#1a1410" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M52.5 33c2.5-2 6-2 8.5 0" stroke="#1a1410" strokeWidth="1.4" fill="none" strokeLinecap="round" />
 
       {/* nose */}
-      <path d="M38 36c1 2 2 2 4 0" stroke="#1a1410" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M46 43c1.2 2.5 2.5 2.5 4 0" stroke="#1a1410" strokeWidth="1.1" fill="none" strokeLinecap="round" opacity="0.5" />
 
       {/* mouth */}
-      <path d="M34 40c2.5 2.5 9.5 2.5 12 0" stroke="#1a1410" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      <path d="M41 48c3 3 11 3 14 0" stroke="#1a1410" strokeWidth="1.8" fill="none" strokeLinecap="round" />
 
-      {/* side part */}
-      {a.hair === 'side' ? (
-        <g>
-          <path d="M22 28c4-14 36-14 36 2-10-8-26-8-36-2z" fill={hairColor} />
-          <path d="M30 22c6-6 18-4 20 2" fill={hairHighlight} opacity="0.4" />
-          <path d="M24 32c-1 6 2 10 4 12" stroke={hairColor} strokeWidth="2.5" fill="none" />
-        </g>
-      ) : null}
-
-      {/* long hair */}
-      {a.hair === 'long' ? (
-        <g>
-          <path d="M20 30c2-16 38-16 40 2v18c-4 4-10 6-16 6s-12-2-16-6c-2-4-4-10-4-14z" fill={hairColor} />
-          <path d="M24 28c6-10 26-10 32 2" fill={hairHighlight} opacity="0.3" />
-        </g>
-      ) : null}
-
-      {/* hat: cap */}
+      {/* hats */}
       {a.hat === 'cap' ? (
         <g>
-          <path d="M22 24c3-12 33-12 36 0H22z" fill="#2c5aa0" />
-          <path d="M22 24h36c-1 3-4 4-8 4H30c-4 0-7-1-8-4z" fill="#1e4078" />
-          <path d="M58 24h10c-2 5-7 6-12 4z" fill="#2c5aa0" />
+          <path d="M28 28c4-14 36-14 40 0H28z" fill="#2a5298" />
+          <path d="M28 28h40c-1.5 4-5 5-10 5H38c-5 0-8.5-1-10-5z" fill="#1c3a70" />
+          <path d="M68 28h12c-2.5 6-8 7-14 5z" fill="#2a5298" />
         </g>
       ) : null}
-
-      {/* hat: beanie */}
       {a.hat === 'beanie' ? (
         <g>
-          <path d="M22 26c2-14 34-14 36 0v3H22z" fill="#6b2c3a" />
-          <path d="M22 26h36v3H22z" fill="#4a1d28" />
-          <circle cx="40" cy="14" r="3" fill="#6b2c3a" />
+          <path d="M28 30c3-16 38-16 40 0v4H28z" fill="#6b2c3a" />
+          <path d="M28 30h40v4H28z" fill="#4a1d28" />
+          <circle cx="48" cy="16" r="3.5" fill="#6b2c3a" />
         </g>
       ) : null}
     </svg>

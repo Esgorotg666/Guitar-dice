@@ -1,0 +1,434 @@
+[
+  {
+    "string": 0,
+    "fret": 0,
+    "file": "note_000.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 1,
+    "file": "note_001.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 2,
+    "file": "note_002.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 3,
+    "file": "note_003.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 4,
+    "file": "note_004.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 5,
+    "file": "note_005.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 6,
+    "file": "note_006.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 7,
+    "file": "note_007.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 8,
+    "file": "note_008.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 9,
+    "file": "note_009.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 10,
+    "file": "note_010.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 0,
+    "fret": 11,
+    "file": "note_011.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 0,
+    "file": "note_012.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 1,
+    "file": "note_013.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 2,
+    "file": "note_014.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 3,
+    "file": "note_015.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 4,
+    "file": "note_016.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 5,
+    "file": "note_017.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 6,
+    "file": "note_018.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 7,
+    "file": "note_019.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 8,
+    "file": "note_020.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 9,
+    "file": "note_021.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 10,
+    "file": "note_022.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 1,
+    "fret": 11,
+    "file": "note_023.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 0,
+    "file": "note_024.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 1,
+    "file": "note_025.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 2,
+    "file": "note_026.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 3,
+    "file": "note_027.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 4,
+    "file": "note_028.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 5,
+    "file": "note_029.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 6,
+    "file": "note_030.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 7,
+    "file": "note_031.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 8,
+    "file": "note_032.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 9,
+    "file": "note_033.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 10,
+    "file": "note_034.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 2,
+    "fret": 11,
+    "file": "note_035.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 0,
+    "file": "note_036.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 1,
+    "file": "note_037.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 2,
+    "file": "note_038.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 3,
+    "file": "note_039.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 4,
+    "file": "note_040.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 5,
+    "file": "note_041.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 6,
+    "file": "note_042.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 7,
+    "file": "note_043.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 8,
+    "file": "note_044.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 9,
+    "file": "note_045.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 10,
+    "file": "note_046.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 3,
+    "fret": 11,
+    "file": "note_047.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 0,
+    "file": "note_048.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 1,
+    "file": "note_049.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 2,
+    "file": "note_050.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 3,
+    "file": "note_051.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 4,
+    "file": "note_052.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 5,
+    "file": "note_053.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 6,
+    "file": "note_054.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 7,
+    "file": "note_055.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 8,
+    "file": "note_056.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 9,
+    "file": "note_057.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 10,
+    "file": "note_058.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 4,
+    "fret": 11,
+    "file": "note_059.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 0,
+    "file": "note_060.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 1,
+    "file": "note_061.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 2,
+    "file": "note_062.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 3,
+    "file": "note_063.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 4,
+    "file": "note_064.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 5,
+    "file": "note_065.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 6,
+    "file": "note_066.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 7,
+    "file": "note_067.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 8,
+    "file": "note_068.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 9,
+    "file": "note_069.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 10,
+    "file": "note_070.wav",
+    "tuning": "DGCFAD"
+  },
+  {
+    "string": 5,
+    "fret": 11,
+    "file": "note_071.wav",
+    "tuning": "DGCFAD"
+  }
+]

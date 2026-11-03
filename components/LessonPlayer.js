@@ -133,12 +133,18 @@ export default function LessonPlayer(props) {
           groups.forEach(function (g, idx) { if (g.id === n.group) gi = idx; });
           noteIndexToGroup[i] = gi;
         });
+        if (countIn) {
+          await new Promise(function (r) { setTimeout(r, (60 / bpm) * 4 * 1000); });
+        }
         const stop = await playSequence(seq, bpm,
           function (i) {
             if (i < 0) return;
             setActive(noteIndexToGroup[i] || 0);
           },
-          function (ok) { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); });
+          function (ok) {
+            if (loop && ok) { toggle(); }
+            else { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); }
+          });
         if (!stop) { setPlaying(false); setBlocked(true); return; }
         stopRef.current = stop;
         return;

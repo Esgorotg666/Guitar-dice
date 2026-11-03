@@ -3,6 +3,7 @@ import { playSequence, playProgressionChords, strumChord } from '../lib/audio';
 import { noteAt, SINGLE_INLAYS, DOUBLE_INLAYS } from '../lib/theory';
 import InlayLayer from './InlayLayer';
 import ChordDiagram from './ChordDiagram';
+import TabView from './TabView';
 
 const STRINGS = ['e','B','G','D','A','E'];
 const FALLBACK_LEGEND = {
@@ -69,6 +70,8 @@ export default function LessonPlayer(props) {
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [loop, setLoop] = useState(false);
+  const [countIn, setCountIn] = useState(true);
   const stopRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -185,7 +188,13 @@ export default function LessonPlayer(props) {
   const isLine = grouped && currentGroup && currentGroup.role === 'line';
 
   return (
-    <div className="lessonPlayer">
+    
+      <TabView notes={notes} active={active} />
+      <div style={{ display: 'flex', gap: 8, margin: '4px 0 8px', fontSize: 13 }}>
+        <label><input type="checkbox" checked={loop} onChange={function (e) { setLoop(e.target.checked); }} /> Loop</label>
+        <label><input type="checkbox" checked={countIn} onChange={function (e) { setCountIn(e.target.checked); }} /> Count-in</label>
+      </div>
+<div className="lessonPlayer">
       {heading ? (
         <p className="nowPlaying">
           {isLine

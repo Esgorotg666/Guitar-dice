@@ -72,6 +72,7 @@ export default function LessonPlayer(props) {
   const [blocked, setBlocked] = useState(false);
   const [loop, setLoop] = useState(false);
   const [countIn, setCountIn] = useState(true);
+  const [swing, setSwing] = useState(0);
   const stopRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -144,7 +145,7 @@ export default function LessonPlayer(props) {
           function (ok) {
             if (loop && ok) { toggle(); }
             else { setPlaying(false); stopRef.current = null; if (!ok) setBlocked(true); }
-          });
+          }, { swing: swing });
         if (!stop) { setPlaying(false); setBlocked(true); return; }
         stopRef.current = stop;
         return;
@@ -199,6 +200,7 @@ export default function LessonPlayer(props) {
       <div style={{ display: 'flex', gap: 8, margin: '4px 0 8px', fontSize: 13 }}>
         <label><input type="checkbox" checked={loop} onChange={function (e) { setLoop(e.target.checked); }} /> Loop</label>
         <label><input type="checkbox" checked={countIn} onChange={function (e) { setCountIn(e.target.checked); }} /> Count-in</label>
+        <label>Swing <input type="range" min="0" max="0.2" step="0.02" value={swing} onChange={function (e) { setSwing(Number(e.target.value)); }} style={{ width: 60 }} /></label>
       </div>
 <div className="lessonPlayer">
       {heading ? (

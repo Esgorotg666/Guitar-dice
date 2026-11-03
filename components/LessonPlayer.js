@@ -140,7 +140,7 @@ export default function LessonPlayer(props) {
         const stop = await playSequence(seq, bpm,
           function (i) {
             if (i < 0) return;
-            setActive(noteIndexToGroup[i] || 0);
+            setActive(i);
           },
           function (ok) {
             if (loop && ok) { toggle(); }

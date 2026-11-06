@@ -195,14 +195,14 @@ export default function LessonPlayer(props) {
   const isLine = grouped && currentGroup && currentGroup.role === 'line';
 
   return (
-    
+    <>
       <TabView notes={notes} active={active} />
       <div style={{ display: 'flex', gap: 8, margin: '4px 0 8px', fontSize: 13 }}>
         <label><input type="checkbox" checked={loop} onChange={function (e) { setLoop(e.target.checked); }} /> Loop</label>
         <label><input type="checkbox" checked={countIn} onChange={function (e) { setCountIn(e.target.checked); }} /> Count-in</label>
         <label>Swing <input type="range" min="0" max="0.2" step="0.02" value={swing} onChange={function (e) { setSwing(Number(e.target.value)); }} style={{ width: 60 }} /></label>
       </div>
-<div className="lessonPlayer">
+      <div className="lessonPlayer">
       {heading ? (
         <p className="nowPlaying">
           {isLine

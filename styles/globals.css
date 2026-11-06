@@ -43,8 +43,8 @@ h3 { font-family:Oxanium,sans-serif; margin:0 0 8px; font-size:1.06rem; color:#e
 .pickItem { display:inline-flex; align-items:center; gap:6px; background:#0a0f14; border:1px solid #1e2a35; border-radius:999px; padding:4px 11px 4px 5px; font-size:.75rem; color:#a9b6c2; }
 .pickItem b { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; border-radius:50%; background:#13232f; border:1px solid #3b9dff; color:#3b9dff; font-size:.68rem; font-weight:800; }
 .chordRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:12px; margin-top:12px; }
-.chordCard { background:#0a0f14; border:1px solid #1e2a35; border-radius:12px; padding:12px 6px 8px; text-align:center; position:relative; transition:transform .12s, box-shadow .2s, border-color .15s; }
-.chordCard.sel { transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.5); }
+.chordCard { background:#0e1218; border:1px solid #2a3544; border-radius:14px; padding:12px 6px 8px; text-align:center; position:relative; transition:transform .15s, box-shadow .2s, border-color .15s; }
+.chordCard.sel { transform:translateY(-4px); box-shadow:0 10px 24px rgba(182,255,0,.18); border-color:#b6ff00; }
 .chordCard.bridgeCard { background:#12100a; }
 .bridgeTag { display:block; font-size:.6rem; text-transform:uppercase; letter-spacing:.6px; color:#ffc65c; margin-bottom:4px; }
 .chordCard strong { display:block; font-size:.92rem; margin-bottom:4px; }

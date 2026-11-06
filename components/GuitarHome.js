@@ -406,15 +406,17 @@ export default function Home() {
             {rolling ? 'Rolling…' : (items.length ? 'Roll again' : 'Roll chords')}
           </button>
           {msg ? <div className="notice"><span>{msg}</span></div> : null}
-          <details className="moreRoll">
-            <summary>Key and mode (optional)</summary>
-            <DiceFocus usage={usage} rollKey={rollKey} rollMode={rollMode}
-              onKey={setRollKey} onMode={setRollMode} onUpgrade={function () { setTab('plans'); }} />
+          <details className="moreRoll" style={{ margin: '8px 0', textAlign: 'left' }}>
+            <summary style={{ cursor: 'pointer', color: '#8a9bb0', fontSize: 13 }}>More options</summary>
+            <div style={{ marginTop: 8 }}>
+              <DiceFocus usage={usage} rollKey={rollKey} rollMode={rollMode}
+                onKey={setRollKey} onMode={setRollMode} onUpgrade={function () { setTab('plans'); }} />
+              {diceMax > 2 ? (
+                <DiceConfig max={diceMax} count={diceN} slots={slots} allowBridge={canBridge} tier={tier}
+                  onCount={setCount} onSlot={setSlot} onUpgrade={function () { setTab('plans'); }} />
+              ) : null}
+            </div>
           </details>
-          {diceMax > 2 ? (
-            <DiceConfig max={diceMax} count={diceN} slots={slots} allowBridge={canBridge} tier={tier}
-              onCount={setCount} onSlot={setSlot} onUpgrade={function () { setTab('plans'); }} />
-          ) : null}
           {items.length ? (
             <div className="card">
               <div className="rowBetween">

@@ -376,10 +376,20 @@ export default function Home() {
       </header>
 
       <nav className="tabs">
-        {[['roll','Roll'],['classroom','Class'],['tools','Tools'],['song','Song'],['saved','Saved'],['settings','Settings'],['account','You']].map(function (t) {
+        {[['roll','Roll'],['classroom','Learn'],['tools','Tools'],['more','More']].map(function (t) {
           return <button key={t[0]} className={'tab' + (tab === t[0] ? ' on' : '')} onClick={function () { setTab(t[0]); }}>{t[1]}</button>;
         })}
       </nav>
+      {tab === 'more' ? (
+        <div className="card" style={{ margin: '8px 0', padding: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <button className="btn ghost" onClick={function () { setTab('song'); }}>Song Builder</button>
+            <button className="btn ghost" onClick={function () { setTab('saved'); }}>Saved</button>
+            <button className="btn ghost" onClick={function () { setTab('settings'); }}>Settings</button>
+            <button className="btn ghost" onClick={function () { setTab('account'); }}>Account</button>
+          </div>
+        </div>
+      ) : null}
       <FreeAdSlot paid={paid} genre={genre} onUpgrade={function () { setTab('plans'); }} onWatchAd={function () { setShowRewarded(true); }} />
       {showRewarded ? <RewardedAd genre={genre} onClose={function () { setShowRewarded(false); }} onComplete={watchAd} onUpgrade={function () { setShowRewarded(false); setTab('plans'); }} /> : null}
 

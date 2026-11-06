@@ -45,3 +45,48 @@ html[data-theme="light"] body, .themeRoot[data-theme="light"]:before { backgroun
   color:#15202b;
 }
 .themeRoot[data-theme="light"] .appFoot a { color:#5c6b78; }
+:root {
+  --neon-green: #b6ff00;
+  --neon-pink: #ff2d9a;
+  --neon-purple: #a020f0;
+  --neon-cyan: #00e5ff;
+  --neon-orange: #ff6b00;
+  --accent: var(--neon-green);
+  --accent2: var(--neon-pink);
+  --bg: #07070a;
+  --card: #0e0e14;
+  --border: #2a2030;
+  --text: #f0f0f5;
+  --muted: #8a7a90;
+}
+
+html[data-theme="dark"], .themeRoot[data-theme="dark"] { color: var(--text); }
+html[data-theme="dark"] body, .themeRoot[data-theme="dark"]:before { background: var(--bg); }
+.themeRoot[data-theme="dark"]:after {
+  background:
+    radial-gradient(900px 500px at 12% -5%, rgba(176,32,240,.35), transparent 60%),
+    radial-gradient(700px 400px at 90% 5%, rgba(255,45,154,.25), transparent 55%),
+    radial-gradient(600px 350px at 50% 100%, rgba(182,255,0,.12), transparent 50%);
+  opacity: .7;
+}
+
+.themeRoot h1 { color: var(--neon-green); text-shadow: 0 0 18px rgba(182,255,0,.4); }
+.themeRoot .tab.on { background: #1a1020; border-color: var(--neon-green); color: var(--neon-green); }
+.themeRoot .rollBtn {
+  background: linear-gradient(135deg, var(--neon-green), #7aff3d);
+  color: #041208;
+  box-shadow: 0 0 22px rgba(182,255,0,.45);
+}
+.themeRoot .btn.primary { background: var(--neon-green); color: #041208; }
+.themeRoot .btn.ghost.onToggle { border-color: var(--neon-green); color: var(--neon-green); }
+.themeRoot .chipBtn.on { background: #1a1020; border-color: var(--neon-pink); color: var(--neon-pink); }
+.themeRoot .card, .themeRoot .choice, .themeRoot .tile, .themeRoot .lessonItem {
+  background: var(--card);
+  border-color: var(--border);
+}
+.themeRoot .field:focus { border-color: var(--neon-green); }
+.themeRoot .nowTag, .themeRoot .tagBlue { background: #1a1020; border-color: var(--neon-green); color: var(--neon-green); }
+.themeRoot .pickItem b { background: #1a1020; border-color: var(--neon-green); color: var(--neon-green); }
+.themeRoot .fitBar i { background: linear-gradient(90deg, var(--neon-green), var(--neon-pink)); }
+.themeRoot .okText { color: var(--neon-green); }
+.themeRoot .sharpText { color: var(--neon-pink); }

@@ -399,11 +399,10 @@ export default function Home() {
       ) : null}
 
       {tab === 'roll' ? (
-        <div>
-          <p className="homeIntro">Tap <b>Roll chords</b>. Then tap a chord to hear it. Class is the lessons.</p>
-          <PracticeWorkout style={style} skill={skill} lessons={lessons} streak={streak} onGoRoll={function () { setTab("roll"); }} onOpenLesson={function (l) { setTab("classroom"); setOpenLesson(l && l.id); }} />
-          <button className={'rollBtn' + (rolling ? ' rolling' : '')} onClick={doRoll} disabled={rolling}>
-            <span className="die">[ ]</span>
+        <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
+          <h1 style={{ fontSize: '2.2rem', margin: '0 0 4px' }}>Roll the Dice</h1>
+          <p className="muted" style={{ margin: '0 0 16px' }}>Get a progression. Tap a chord to hear it.</p>
+          <button className={'rollBtn' + (rolling ? ' rolling' : '')} onClick={doRoll} disabled={rolling} style={{ maxWidth: 320, margin: '0 auto 12px', fontSize: '1.3rem', padding: '22px 16px' }}>
             {rolling ? 'Rolling…' : (items.length ? 'Roll again' : 'Roll chords')}
           </button>
           {msg ? <div className="notice"><span>{msg}</span></div> : null}

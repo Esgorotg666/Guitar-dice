@@ -218,3 +218,16 @@ ul { padding-left:20px; } li { margin-bottom:8px; } a { color:#3b9dff; }
 .stringBtn.active small { color:#3b9dff; }
 .stringBtn.tuned { border-color:#35c46b; color:#35c46b; }
 .stringBtn.tuned small { color:#35c46b; }
+
+@keyframes diceShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg) scale(1.02); }
+  50% { transform: rotate(6deg); }
+  75% { transform: rotate(-4deg); }
+}
+.rollBtn.rolling { animation: diceShake .3s ease-in-out infinite; }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chordCard { animation: cardIn .35s ease-out; }

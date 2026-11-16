@@ -74,6 +74,7 @@ export default function Home() {
   const [appSettings, setAppSettings] = useState({ theme:'dark', bpm:90, a4:440, tuningId:'standard' });
   const [showRewarded, setShowRewarded] = useState(false);
   const [locker, setLocker] = useState({ avatar:{ skin:'tan', hair:'none', hat:'none', shirt:'black' }, guitar:{ body:'natural', guard:'none', hardware:'chrome', inlay:'dots' } });
+  const [traffic, setTraffic] = useState(null);
 
   function refresh() {
     return Promise.all([api('preferences'), api('usage/status'), api('streak/status'), api('auth/user'), api('billing/status')])
@@ -110,6 +111,9 @@ export default function Home() {
       });
   }
 
+  useEffect(function () {
+    fetch('/api/traffic/stats').then(function (r) { return r.json(); }).then(setTraffic).catch(function () {});
+  }, []);
   useEffect(function () {
     let alive = true;
     fetch('/data/musicdata.json').then(function (r) { return r.json(); }).catch(function () { return null; })
@@ -369,6 +373,7 @@ export default function Home() {
           <p className="muted sm">{styleMeta.label} · {genreLabel}</p>
         </div>
         <div className="stats">
+          {traffic ? <span className="pill" title="Total page views">{traffic.views} views</span> : null}
           {paid ? <span className="pill tier">{usage.tierLabel}</span> : null}
           {streak && streak.currentStreak > 0 ? <span className="pill">{streak.currentStreak} day{streak.currentStreak === 1 ? '' : 's'}</span> : null}
           <span className="pill">{usage && usage.unlimitedRolls ? 'unlimited' : ((usage && usage.remainingRolls) || 0) + ' rolls'}</span>
